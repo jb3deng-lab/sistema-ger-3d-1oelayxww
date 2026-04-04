@@ -86,23 +86,26 @@ export function InvoicePreview({
                 </tr>
               </thead>
               <tbody>
-                {quote.items.map((item, idx) => (
-                  <tr key={idx} className="border-b border-slate-100">
-                    <td className="py-3">
-                      <p className="font-semibold text-slate-800">{item.pieceName}</p>
-                      <p className="text-xs text-slate-500">
-                        Peso Estimado: {item.weight}g | Tempo: {item.timeHours}h
-                      </p>
-                    </td>
-                    <td className="py-3 text-center text-slate-700">1</td>
-                    <td className="py-3 text-right text-slate-700">
-                      R$ {item.suggestedPrice.toFixed(2)}
-                    </td>
-                    <td className="py-3 text-right font-medium text-slate-800">
-                      R$ {item.suggestedPrice.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
+                {quote.items.map((item, idx) => {
+                  const qty = item.quantity || 1
+                  return (
+                    <tr key={idx} className="border-b border-slate-100">
+                      <td className="py-3">
+                        <p className="font-semibold text-slate-800">{item.pieceName}</p>
+                        <p className="text-xs text-slate-500">
+                          Peso Estimado: {item.weight}g | Tempo: {item.timeHours}h
+                        </p>
+                      </td>
+                      <td className="py-3 text-center text-slate-700">{qty}</td>
+                      <td className="py-3 text-right text-slate-700">
+                        R$ {item.suggestedPrice.toFixed(2)}
+                      </td>
+                      <td className="py-3 text-right font-medium text-slate-800">
+                        R$ {(item.suggestedPrice * qty).toFixed(2)}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -113,10 +116,19 @@ export function InvoicePreview({
                 <span>Subtotal:</span>
                 <span>R$ {quote.suggestedPrice.toFixed(2)}</span>
               </div>
-              {quote.finalPrice !== quote.suggestedPrice && (
+              {!!quote.discount && quote.discount > 0 && (
+                <div className="flex justify-between text-sm text-slate-600 text-red-600">
+                  <span>Desconto:</span>
+                  <span>- R$ {quote.discount.toFixed(2)}</span>
+                </div>
+              )}
+              {quote.finalPrice !== quote.suggestedPrice - (quote.discount || 0) && (
                 <div className="flex justify-between text-sm text-slate-600">
-                  <span>Ajuste/Desconto:</span>
-                  <span>R$ {(quote.finalPrice - quote.suggestedPrice).toFixed(2)}</span>
+                  <span>Outros Ajustes:</span>
+                  <span>
+                    R${' '}
+                    {(quote.finalPrice - (quote.suggestedPrice - (quote.discount || 0))).toFixed(2)}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between py-3 border-t-2 border-slate-800 font-bold text-xl text-slate-800">

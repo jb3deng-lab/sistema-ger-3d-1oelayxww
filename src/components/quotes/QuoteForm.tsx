@@ -22,6 +22,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
 
   const [clientId, setClientId] = useState('')
   const [items, setItems] = useState<Partial<QuoteItem>[]>([])
+  const [discount, setDiscount] = useState('0')
   const [finalPrice, setFinalPrice] = useState('')
   const [status, setStatus] = useState<'Pendente' | 'Aprovado' | 'Recusado'>('Pendente')
 
@@ -32,12 +33,16 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         if (q) {
           setClientId(q.clientId)
           setItems(q.items)
+          setDiscount(q.discount?.toString() || '0')
           setFinalPrice(q.finalPrice.toString())
           setStatus(q.status)
         }
       } else {
         setClientId('')
-        setItems([{ pieceName: '', weight: 0, timeHours: 0, filamentId: '', machineId: '' }])
+        setItems([
+          { pieceName: '', weight: 0, timeHours: 0, quantity: 1, filamentId: '', machineId: '' },
+        ])
+        setDiscount('0')
         setFinalPrice('')
         setStatus('Pendente')
       }
@@ -70,13 +75,16 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const totals = useMemo(
     () =>
       calculatedItems.reduce(
-        (acc, item) => ({
-          material: acc.material + item.costs.material,
-          machine: acc.machine + item.costs.machine,
-          energy: acc.energy + item.costs.energy,
-          total: acc.total + item.costs.total,
-          suggestedPrice: acc.suggestedPrice + item.suggestedPrice,
-        }),
+        (acc, item) => {
+          const qty = item.quantity || 1
+          return {
+            material: acc.material + item.costs.material * qty,
+            machine: acc.machine + item.costs.machine * qty,
+            energy: acc.energy + item.costs.energy * qty,
+            total: acc.total + item.costs.total * qty,
+            suggestedPrice: acc.suggestedPrice + item.suggestedPrice * qty,
+          }
+        },
         { material: 0, machine: 0, energy: 0, total: 0, suggestedPrice: 0 },
       ),
     [calculatedItems],
@@ -90,6 +98,9 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
       return toast({ title: 'Erro', description: 'Adicione itens.', variant: 'destructive' })
 
     const client = clients.find((c) => c.id === clientId)
+    const discountVal = parseFloat(discount) || 0
+    const finalPriceVal = parseFloat(finalPrice) || Math.max(0, totals.suggestedPrice - discountVal)
+
     const quoteData: Omit<Quote, 'id'> = {
       clientId,
       clientName: client ? client.name : '',
@@ -101,7 +112,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         total: totals.total,
       },
       suggestedPrice: totals.suggestedPrice,
-      finalPrice: parseFloat(finalPrice) || totals.suggestedPrice,
+      discount: discountVal,
+      finalPrice: finalPriceVal,
       status,
       date: new Date().toISOString(),
     }
@@ -170,7 +182,14 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                 onClick={() =>
                   setItems([
                     ...items,
-                    { pieceName: '', weight: 0, timeHours: 0, filamentId: '', machineId: '' },
+                    {
+                      pieceName: '',
+                      weight: 0,
+                      timeHours: 0,
+                      quantity: 1,
+                      filamentId: '',
+                      machineId: '',
+                    },
                   ])
                 }
               >
@@ -190,13 +209,25 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pr-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pr-6">
                   <div className="space-y-2 lg:col-span-2">
                     <Label>Peça</Label>
                     <Input
                       required
                       value={item.pieceName || ''}
                       onChange={(e) => updateItem(index, 'pieceName', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 lg:col-span-1">
+                    <Label>Qtd</Label>
+                    <Input
+                      type="number"
+                      required
+                      min="1"
+                      value={item.quantity || 1}
+                      onChange={(e) =>
+                        updateItem(index, 'quantity', parseInt(e.target.value, 10) || 1)
+                      }
                     />
                   </div>
                   <div className="space-y-2 lg:col-span-1">
@@ -239,7 +270,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2 lg:col-span-2">
+                  <div className="space-y-2 lg:col-span-3">
                     <Label>Máquina</Label>
                     <Select
                       required
@@ -269,28 +300,50 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
               <span>Energia: R$ {totals.energy.toFixed(2)}</span>
             </div>
             <div className="pt-2 border-t flex justify-between font-bold items-center">
-              <span>Preço Sugerido:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-primary">R$ {totals.suggestedPrice.toFixed(2)}</span>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setFinalPrice(totals.suggestedPrice.toFixed(2))}
-                >
-                  <Calculator className="w-4 h-4" />
-                </Button>
-              </div>
+              <span>Preço Sugerido (Subtotal):</span>
+              <span className="text-primary">R$ {totals.suggestedPrice.toFixed(2)}</span>
             </div>
-            <div className="space-y-2 pt-2">
-              <Label>Preço Final Cobrado</Label>
-              <Input
-                type="number"
-                step="0.01"
-                required
-                value={finalPrice}
-                onChange={(e) => setFinalPrice(e.target.value)}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-2">
+                <Label>Desconto (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={discount}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setDiscount(val)
+                    const d = parseFloat(val) || 0
+                    setFinalPrice(Math.max(0, totals.suggestedPrice - d).toFixed(2))
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Preço Final Cobrado</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="w-5 h-5 -mt-1 text-muted-foreground hover:text-foreground"
+                    title="Calcular com base no subtotal e desconto"
+                    onClick={() => {
+                      const d = parseFloat(discount) || 0
+                      setFinalPrice(Math.max(0, totals.suggestedPrice - d).toFixed(2))
+                    }}
+                  >
+                    <Calculator className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={finalPrice}
+                  onChange={(e) => setFinalPrice(e.target.value)}
+                />
+              </div>
             </div>
           </div>
           <Button type="submit" className="w-full">

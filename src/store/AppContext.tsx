@@ -47,6 +47,7 @@ export type QuoteItem = {
   timeHours: number
   filamentId: string
   machineId: string
+  quantity: number
   costs: { material: number; machine: number; energy: number; total: number }
   suggestedPrice: number
 }
@@ -58,6 +59,7 @@ export type Quote = {
   items: QuoteItem[]
   totalCosts: { material: number; machine: number; energy: number; total: number }
   suggestedPrice: number
+  discount: number
   finalPrice: number
   status: 'Pendente' | 'Aprovado' | 'Recusado'
   date: string
@@ -144,12 +146,14 @@ const mockQuotes: Quote[] = [
         timeHours: 5,
         filamentId: '1',
         machineId: '1',
+        quantity: 1,
         costs: { material: 22.5, machine: 12, energy: 7.5, total: 42 },
         suggestedPrice: 63,
       },
     ],
     totalCosts: { material: 22.5, machine: 12, energy: 7.5, total: 42 },
     suggestedPrice: 63,
+    discount: 3,
     finalPrice: 60,
     status: 'Aprovado',
     date: new Date().toISOString(),

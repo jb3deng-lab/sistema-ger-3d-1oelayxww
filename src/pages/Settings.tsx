@@ -18,12 +18,14 @@ export default function Settings() {
   })
 
   useEffect(() => {
-    setFormData({
-      filamentCost: settings.filamentCost.toString(),
-      energyCost: settings.energyCost.toString(),
-      machineCost: settings.machineCost.toString(),
-      profitMargin: settings.profitMargin.toString(),
-    })
+    if (settings) {
+      setFormData({
+        filamentCost: settings.filamentCost?.toString() ?? '',
+        energyCost: settings.energyCost?.toString() ?? '',
+        machineCost: settings.machineCost?.toString() ?? '',
+        profitMargin: settings.profitMargin?.toString() ?? '',
+      })
+    }
   }, [settings])
 
   const handleSave = (e: React.FormEvent) => {

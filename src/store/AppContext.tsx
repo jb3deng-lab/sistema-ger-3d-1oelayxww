@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 export type Settings = {
+  filamentCost: number
   energyCost: number
   machineCost: number
   profitMargin: number
@@ -163,6 +164,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<Settings>({
+    filamentCost: 150,
     energyCost: 1.5,
     machineCost: 2.0,
     profitMargin: 50,

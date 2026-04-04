@@ -27,15 +27,17 @@ const navItems = [
   { path: '/financial', label: 'Financeiro', icon: DollarSign },
 ]
 
+import { ThemeToggle } from './ThemeToggle'
+
 export default function Layout() {
   const location = useLocation()
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-50">
+    <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-white fixed inset-y-0 z-10">
-        <div className="h-16 flex items-center px-6 border-b">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600">
+      <aside className="hidden md:flex flex-col w-64 border-r bg-card fixed inset-y-0 z-10">
+        <div className="h-16 flex items-center px-6 border-b border-border">
+          <div className="flex items-center gap-2 font-bold text-xl text-primary">
             <Box className="h-6 w-6" />
             <span>3D Vendas</span>
           </div>
@@ -50,8 +52,8 @@ export default function Layout() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-indigo-50 text-indigo-600'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -67,8 +69,8 @@ export default function Layout() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 location.pathname === '/settings'
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
             >
               <Settings className="h-5 w-5" />
@@ -79,7 +81,7 @@ export default function Layout() {
       </aside>
 
       {/* Mobile Top Header */}
-      <header className="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b flex items-center justify-between px-4 z-20">
+      <header className="md:hidden fixed top-0 inset-x-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-20">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="-ml-2">
@@ -87,14 +89,14 @@ export default function Layout() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <div className="h-14 flex items-center px-6 border-b font-bold text-xl text-indigo-600">
+            <div className="h-14 flex items-center px-6 border-b border-border font-bold text-xl text-primary">
               3D Vendas
             </div>
             <nav className="flex flex-col p-4 gap-2">
               {[...navItems, { path: '/settings', label: 'Configurações', icon: Settings }].map(
                 (item) => (
                   <Link key={item.path} to={item.path}>
-                    <span className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    <span className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
                       <item.icon className="h-5 w-5" />
                       {item.label}
                     </span>
@@ -104,38 +106,16 @@ export default function Layout() {
             </nav>
           </SheetContent>
         </Sheet>
-        <span className="font-bold text-lg text-indigo-600">3D Vendas</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="-mr-2 text-indigo-600">
-              <Plus className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <Link to="/quotes">
-              <DropdownMenuItem>Novo Orçamento</DropdownMenuItem>
-            </Link>
-            <Link to="/inventory">
-              <DropdownMenuItem>Novo Filamento</DropdownMenuItem>
-            </Link>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 md:pl-64 pt-14 md:pt-0 pb-16 md:pb-0 min-h-screen">
-        {/* Desktop Top Bar */}
-        <div className="hidden md:flex h-16 border-b bg-white items-center justify-between px-8 sticky top-0 z-10">
-          <h1 className="text-xl font-semibold text-slate-800 capitalize">
-            {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1)}
-          </h1>
+        <span className="font-bold text-lg text-primary">3D Vendas</span>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6">
-                <Plus className="h-4 w-4" /> Novo
+              <Button variant="ghost" size="icon" className="-mr-2 text-primary">
+                <Plus className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end">
               <Link to="/quotes">
                 <DropdownMenuItem>Novo Orçamento</DropdownMenuItem>
               </Link>
@@ -145,6 +125,34 @@ export default function Layout() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 md:pl-64 pt-14 md:pt-0 pb-16 md:pb-0 min-h-screen bg-background">
+        {/* Desktop Top Bar */}
+        <div className="hidden md:flex h-16 border-b border-border bg-card items-center justify-between px-8 sticky top-0 z-10">
+          <h1 className="text-xl font-semibold text-foreground capitalize">
+            {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1)}
+          </h1>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="gap-2 rounded-full px-6">
+                  <Plus className="h-4 w-4" /> Novo
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <Link to="/quotes">
+                  <DropdownMenuItem>Novo Orçamento</DropdownMenuItem>
+                </Link>
+                <Link to="/inventory">
+                  <DropdownMenuItem>Novo Filamento</DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
         <div className="p-4 md:p-8 animate-fade-in-up">
           <Outlet />
@@ -152,7 +160,7 @@ export default function Layout() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-white border-t flex items-center justify-around px-2 z-20 pb-safe">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-card border-t border-border flex items-center justify-around px-2 z-20 pb-safe">
         {navItems.slice(0, 4).map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path
@@ -165,13 +173,13 @@ export default function Layout() {
               <Icon
                 className={cn(
                   'h-5 w-5 transition-colors',
-                  isActive ? 'text-indigo-600' : 'text-slate-400',
+                  isActive ? 'text-primary' : 'text-muted-foreground',
                 )}
               />
               <span
                 className={cn(
                   'text-[10px] font-medium',
-                  isActive ? 'text-indigo-600' : 'text-slate-500',
+                  isActive ? 'text-primary' : 'text-muted-foreground',
                 )}
               >
                 {item.label}

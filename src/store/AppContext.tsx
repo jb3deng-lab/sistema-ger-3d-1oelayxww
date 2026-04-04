@@ -205,15 +205,78 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addQuote = (q: Quote) => setQuotes((p) => [q, ...p])
   const updateQuote = (id: string, d: Partial<Quote>) =>
     setQuotes((p) => p.map((q) => (q.id === id ? { ...q, ...d } : q)))
+
   const updateQuoteStatus = (id: string, s: Quote['status']) => {
+    const quote = quotes.find((q) => q.id === id)
+    if (!quote || quote.status === s) return
+
     setQuotes((p) => p.map((q) => (q.id === id ? { ...q, status: s } : q)))
-    if (s === 'Aprovado')
+
+    if (s === 'Aprovado') {
       addOrder({
         id: Date.now().toString(),
         quoteId: id,
         status: 'Aguardando',
         startDate: new Date().toISOString(),
       })
+
+      setFilaments((p) => {
+        let newFilaments = [...p]
+        quote.items.forEach((item) => {
+          const qty = item.quantity || 1
+          const totalWeight = item.weight * qty
+          newFilaments = newFilaments.map((f) =>
+            f.id === item.filamentId
+              ? { ...f, currentWeight: Math.max(0, f.currentWeight - totalWeight) }
+              : f,
+          )
+        })
+        return newFilaments
+      })
+
+      setTransactions((p) => [
+        {
+          id: Date.now().toString() + '-rev',
+          description: `Receita Pedido #${quote.id.slice(-6)} - ${quote.clientName}`,
+          type: 'Entrada',
+          amount: quote.finalPrice,
+          date: new Date().toISOString(),
+        },
+        {
+          id: Date.now().toString() + '-cost',
+          description: `Custos Pedido #${quote.id.slice(-6)} - ${quote.clientName}`,
+          type: 'Saída',
+          amount: quote.totalCosts.total,
+          date: new Date().toISOString(),
+        },
+        ...p,
+      ])
+    } else if (quote.status === 'Aprovado' && (s === 'Recusado' || s === 'Pendente')) {
+      // Revert deductions
+      setFilaments((p) => {
+        let newFilaments = [...p]
+        quote.items.forEach((item) => {
+          const qty = item.quantity || 1
+          const totalWeight = item.weight * qty
+          newFilaments = newFilaments.map((f) =>
+            f.id === item.filamentId ? { ...f, currentWeight: f.currentWeight + totalWeight } : f,
+          )
+        })
+        return newFilaments
+      })
+
+      // Revert transactions
+      setTransactions((p) =>
+        p.filter(
+          (t) =>
+            t.description !== `Receita Pedido #${quote.id.slice(-6)} - ${quote.clientName}` &&
+            t.description !== `Custos Pedido #${quote.id.slice(-6)} - ${quote.clientName}`,
+        ),
+      )
+
+      // Remove order
+      setOrders((p) => p.filter((o) => o.quoteId !== id))
+    }
   }
 
   const addOrder = (o: Order) => setOrders((p) => [o, ...p])

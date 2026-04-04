@@ -141,7 +141,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2 sm:col-span-1">
+            <div className="space-y-2 col-span-2">
               <Label>Cliente</Label>
               <Select value={clientId} onValueChange={setClientId} required>
                 <SelectTrigger>
@@ -156,21 +156,6 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                 </SelectContent>
               </Select>
             </div>
-            {editId && (
-              <div className="space-y-2 col-span-2 sm:col-span-1">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                    <SelectItem value="Aprovado">Aprovado</SelectItem>
-                    <SelectItem value="Recusado">Recusado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
           <div className="space-y-4 border-t pt-4">
             <div className="flex justify-between items-center">

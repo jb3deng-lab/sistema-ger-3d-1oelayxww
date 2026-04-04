@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useApp } from '@/store/AppContext'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -8,19 +10,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Clock, Calendar, CheckCircle2 } from 'lucide-react'
+import { Clock, Calendar, CheckCircle2, Printer } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { InvoicePreview } from '@/components/quotes/InvoicePreview'
 
 export default function Orders() {
   const { orders, quotes, updateOrderStatus } = useApp()
   const { toast } = useToast()
+  const [invoiceQuote, setInvoiceQuote] = useState<any>(null)
 
   const handleStatusChange = (id: string, newStatus: any) => {
     updateOrderStatus(id, newStatus)
     if (newStatus === 'Finalizado') {
       toast({
         title: 'Produção Finalizada',
-        description: 'Filamento deduzido e receita registrada.',
+        description: 'Status do pedido atualizado para Finalizado.',
       })
     }
   }
@@ -43,8 +47,14 @@ export default function Orders() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-800">Pedidos em Produção</h2>
+        <h2 className="text-2xl font-bold text-foreground">Pedidos em Produção</h2>
       </div>
+
+      <InvoicePreview
+        quote={invoiceQuote}
+        open={!!invoiceQuote}
+        onOpenChange={(o) => !o && setInvoiceQuote(null)}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {orders.map((order) => {
@@ -84,12 +94,12 @@ export default function Orders() {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex gap-2">
                   <Select
                     value={order.status}
                     onValueChange={(v) => handleStatusChange(order.id, v)}
                   >
-                    <SelectTrigger className="w-full h-9 text-sm">
+                    <SelectTrigger className="flex-1 h-9 text-sm">
                       <SelectValue placeholder="Alterar status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -99,6 +109,15 @@ export default function Orders() {
                       <SelectItem value="Entregue">Entregue</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => setInvoiceQuote(quote)}
+                    title="Imprimir Nota"
+                  >
+                    <Printer className="w-4 h-4 text-slate-600" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

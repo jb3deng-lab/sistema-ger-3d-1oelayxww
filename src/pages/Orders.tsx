@@ -59,7 +59,10 @@ export default function Orders() {
               <CardContent className="p-5 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-slate-800">{quote.pieceName}</h3>
+                    <h3 className="font-bold text-slate-800">
+                      {quote.items[0]?.pieceName}{' '}
+                      {quote.items.length > 1 && `(+${quote.items.length - 1})`}
+                    </h3>
                     <p className="text-sm text-slate-500">{quote.clientName}</p>
                   </div>
                   <Badge variant="secondary" className={getStatusColor(order.status)}>
@@ -69,7 +72,8 @@ export default function Orders() {
 
                 <div className="flex flex-wrap gap-3 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg">
                   <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {quote.timeHours}h est.
+                    <Clock className="w-3 h-3" />{' '}
+                    {quote.items.reduce((acc, i) => acc + i.timeHours, 0)}h est.
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />{' '}

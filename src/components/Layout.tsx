@@ -8,6 +8,8 @@ import {
   Settings,
   Plus,
   Menu,
+  Users,
+  Printer,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +27,8 @@ const navItems = [
   { path: '/orders', label: 'Pedidos', icon: Box },
   { path: '/inventory', label: 'Estoque', icon: Package },
   { path: '/financial', label: 'Financeiro', icon: DollarSign },
+  { path: '/clients', label: 'Clientes', icon: Users },
+  { path: '/machines', label: 'Máquinas', icon: Printer },
 ]
 
 import { ThemeToggle } from './ThemeToggle'
@@ -160,8 +164,8 @@ export default function Layout() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-card border-t border-border flex items-center justify-around px-2 z-20 pb-safe">
-        {navItems.slice(0, 4).map((item) => {
+      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-card border-t border-border flex items-center justify-around px-2 z-20 pb-safe overflow-x-auto">
+        {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path
           return (

@@ -11,6 +11,8 @@ import Orders from './pages/Orders'
 import Inventory from './pages/Inventory'
 import Financial from './pages/Financial'
 import Settings from './pages/Settings'
+import Clients from './pages/Clients'
+import Machines from './pages/Machines'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -27,6 +29,8 @@ const App = () => (
               <Route path="/orders" element={<Orders />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/financial" element={<Financial />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/machines" element={<Machines />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

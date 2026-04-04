@@ -5,6 +5,12 @@ export type Settings = {
   energyCost: number
   machineCost: number
   profitMargin: number
+  companyName: string
+  companyDocument: string
+  companyEmail: string
+  companyPhone: string
+  companyAddress: string
+  companyLogo: string
 }
 
 export type Filament = {
@@ -18,6 +24,21 @@ export type Filament = {
   purchaseDate: string
   costPerKg: number
 }
+export type Client = {
+  id: string
+  name: string
+  email: string
+  phone: string
+  document: string
+  address: string
+}
+export type Machine = {
+  id: string
+  name: string
+  purchaseValue: number
+  usefulLifeHours: number
+  depreciationRate: number
+}
 
 export type QuoteItem = {
   id: string
@@ -25,12 +46,14 @@ export type QuoteItem = {
   weight: number
   timeHours: number
   filamentId: string
+  machineId: string
   costs: { material: number; machine: number; energy: number; total: number }
   suggestedPrice: number
 }
 
 export type Quote = {
   id: string
+  clientId: string
   clientName: string
   items: QuoteItem[]
   totalCosts: { material: number; machine: number; energy: number; total: number }
@@ -46,7 +69,6 @@ export type Order = {
   status: 'Aguardando' | 'Em produção' | 'Finalizado' | 'Entregue'
   startDate: string
 }
-
 export type Transaction = {
   id: string
   description: string
@@ -62,6 +84,14 @@ type AppContextType = {
   addFilament: (f: Filament) => void
   updateFilament: (id: string, data: Partial<Filament>) => void
   updateFilamentWeight: (id: string, weight: number) => void
+  clients: Client[]
+  addClient: (c: Client) => void
+  updateClient: (id: string, data: Partial<Client>) => void
+  deleteClient: (id: string) => void
+  machines: Machine[]
+  addMachine: (m: Machine) => void
+  updateMachine: (id: string, data: Partial<Machine>) => void
+  deleteMachine: (id: string) => void
   quotes: Quote[]
   addQuote: (q: Quote) => void
   updateQuote: (id: string, data: Partial<Quote>) => void
@@ -73,45 +103,38 @@ type AppContextType = {
   addTransaction: (t: Transaction) => void
 }
 
-const mockFilaments: Filament[] = [
+const mockClients: Client[] = [
   {
     id: '1',
-    name: 'PLA Premium',
-    brand: '3D Fila',
-    type: 'PLA',
-    colorHex: '#000000',
-    initialWeight: 1000,
-    currentWeight: 850,
-    purchaseDate: '2023-09-01',
-    costPerKg: 150,
+    name: 'João Silva',
+    email: 'joao@email.com',
+    phone: '(11) 98765-4321',
+    document: '123.456.789-00',
+    address: 'Rua das Flores, 123 - SP',
+  },
+]
+
+const mockMachines: Machine[] = [
+  {
+    id: '1',
+    name: 'Bambu Lab X1 Carbon',
+    purchaseValue: 12000,
+    usefulLifeHours: 5000,
+    depreciationRate: 2.4,
   },
   {
     id: '2',
-    name: 'PETG Silk',
-    brand: 'Voolt3D',
-    type: 'PETG',
-    colorHex: '#ffffff',
-    initialWeight: 1000,
-    currentWeight: 90,
-    purchaseDate: '2023-09-10',
-    costPerKg: 180,
-  },
-  {
-    id: '3',
-    name: 'ABS Plus',
-    brand: 'Cliever',
-    type: 'ABS',
-    colorHex: '#ff0000',
-    initialWeight: 1000,
-    currentWeight: 1000,
-    purchaseDate: '2023-09-15',
-    costPerKg: 140,
+    name: 'Creality Ender 3 V2',
+    purchaseValue: 1500,
+    usefulLifeHours: 4000,
+    depreciationRate: 0.375,
   },
 ]
 
 const mockQuotes: Quote[] = [
   {
     id: '1',
+    clientId: '1',
     clientName: 'João Silva',
     items: [
       {
@@ -120,42 +143,15 @@ const mockQuotes: Quote[] = [
         weight: 150,
         timeHours: 5,
         filamentId: '1',
-        costs: { material: 22.5, machine: 10, energy: 7.5, total: 40 },
-        suggestedPrice: 60,
+        machineId: '1',
+        costs: { material: 22.5, machine: 12, energy: 7.5, total: 42 },
+        suggestedPrice: 63,
       },
     ],
-    totalCosts: { material: 22.5, machine: 10, energy: 7.5, total: 40 },
-    suggestedPrice: 60,
+    totalCosts: { material: 22.5, machine: 12, energy: 7.5, total: 42 },
+    suggestedPrice: 63,
     finalPrice: 60,
     status: 'Aprovado',
-    date: new Date().toISOString(),
-  },
-]
-
-const mockOrders: Order[] = [
-  { id: '1', quoteId: '1', status: 'Em produção', startDate: new Date().toISOString() },
-]
-
-const mockTransactions: Transaction[] = [
-  {
-    id: '1',
-    description: 'Compra de Filamentos',
-    type: 'Saída',
-    amount: 300,
-    date: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: '2',
-    description: 'Serviço - Troca de bico',
-    type: 'Saída',
-    amount: 50,
-    date: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    description: 'Venda - Vaso decorativo',
-    type: 'Entrada',
-    amount: 120,
     date: new Date().toISOString(),
   },
 ]
@@ -168,64 +164,58 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     energyCost: 1.5,
     machineCost: 2.0,
     profitMargin: 50,
+    companyName: 'Minha 3D Print',
+    companyDocument: '00.000.000/0001-00',
+    companyEmail: 'contato@minha3d.com',
+    companyPhone: '(11) 99999-9999',
+    companyAddress: 'Rua Principal, 1000 - Centro',
+    companyLogo: '',
   })
-  const [filaments, setFilaments] = useState<Filament[]>(mockFilaments)
+  const [filaments, setFilaments] = useState<Filament[]>([])
+  const [clients, setClients] = useState<Client[]>(mockClients)
+  const [machines, setMachines] = useState<Machine[]>(mockMachines)
   const [quotes, setQuotes] = useState<Quote[]>(mockQuotes)
-  const [orders, setOrders] = useState<Order[]>(mockOrders)
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
+  const [orders, setOrders] = useState<Order[]>([
+    { id: '1', quoteId: '1', status: 'Em produção', startDate: new Date().toISOString() },
+  ])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   const updateSettings = (s: Settings) => setSettings(s)
-  const addFilament = (f: Filament) => setFilaments((prev) => [f, ...prev])
-  const updateFilament = (id: string, data: Partial<Filament>) =>
-    setFilaments((prev) => prev.map((f) => (f.id === id ? { ...f, ...data } : f)))
-  const updateFilamentWeight = (id: string, weight: number) =>
-    setFilaments((prev) => prev.map((f) => (f.id === id ? { ...f, currentWeight: weight } : f)))
 
-  const addQuote = (q: Quote) => setQuotes((prev) => [q, ...prev])
-  const updateQuote = (id: string, data: Partial<Quote>) =>
-    setQuotes((prev) => prev.map((q) => (q.id === id ? { ...q, ...data } : q)))
+  const addClient = (c: Client) => setClients((p) => [c, ...p])
+  const updateClient = (id: string, d: Partial<Client>) =>
+    setClients((p) => p.map((c) => (c.id === id ? { ...c, ...d } : c)))
+  const deleteClient = (id: string) => setClients((p) => p.filter((c) => c.id !== id))
 
-  const updateQuoteStatus = (id: string, status: Quote['status']) => {
-    setQuotes((prev) => prev.map((q) => (q.id === id ? { ...q, status } : q)))
-    if (status === 'Aprovado') {
+  const addMachine = (m: Machine) => setMachines((p) => [m, ...p])
+  const updateMachine = (id: string, d: Partial<Machine>) =>
+    setMachines((p) => p.map((m) => (m.id === id ? { ...m, ...d } : m)))
+  const deleteMachine = (id: string) => setMachines((p) => p.filter((m) => m.id !== id))
+
+  const addFilament = (f: Filament) => setFilaments((p) => [f, ...p])
+  const updateFilament = (id: string, d: Partial<Filament>) =>
+    setFilaments((p) => p.map((f) => (f.id === id ? { ...f, ...d } : f)))
+  const updateFilamentWeight = (id: string, w: number) =>
+    setFilaments((p) => p.map((f) => (f.id === id ? { ...f, currentWeight: w } : f)))
+
+  const addQuote = (q: Quote) => setQuotes((p) => [q, ...p])
+  const updateQuote = (id: string, d: Partial<Quote>) =>
+    setQuotes((p) => p.map((q) => (q.id === id ? { ...q, ...d } : q)))
+  const updateQuoteStatus = (id: string, s: Quote['status']) => {
+    setQuotes((p) => p.map((q) => (q.id === id ? { ...q, status: s } : q)))
+    if (s === 'Aprovado')
       addOrder({
         id: Date.now().toString(),
         quoteId: id,
         status: 'Aguardando',
         startDate: new Date().toISOString(),
       })
-    }
   }
 
-  const addOrder = (o: Order) => setOrders((prev) => [o, ...prev])
-
-  const updateOrderStatus = (id: string, status: Order['status']) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id === id && status === 'Finalizado' && o.status !== 'Finalizado') {
-          const quote = quotes.find((q) => q.id === o.quoteId)
-          if (quote) {
-            quote.items.forEach((item) => {
-              const filament = filaments.find((f) => f.id === item.filamentId)
-              if (filament) {
-                updateFilamentWeight(filament.id, Math.max(0, filament.currentWeight - item.weight))
-              }
-            })
-            addTransaction({
-              id: Date.now().toString(),
-              description: `Venda - Orçamento ${quote.id} (${quote.clientName})`,
-              type: 'Entrada',
-              amount: quote.finalPrice,
-              date: new Date().toISOString(),
-            })
-          }
-        }
-        return o.id === id ? { ...o, status } : o
-      }),
-    )
-  }
-
-  const addTransaction = (t: Transaction) => setTransactions((prev) => [t, ...prev])
+  const addOrder = (o: Order) => setOrders((p) => [o, ...p])
+  const updateOrderStatus = (id: string, s: Order['status']) =>
+    setOrders((p) => p.map((o) => (o.id === id ? { ...o, status: s } : o)))
+  const addTransaction = (t: Transaction) => setTransactions((p) => [t, ...p])
 
   return (
     <AppContext.Provider
@@ -236,6 +226,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addFilament,
         updateFilament,
         updateFilamentWeight,
+        clients,
+        addClient,
+        updateClient,
+        deleteClient,
+        machines,
+        addMachine,
+        updateMachine,
+        deleteMachine,
         quotes,
         addQuote,
         updateQuote,
@@ -253,7 +251,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 }
 
 export const useApp = () => {
-  const context = useContext(AppContext)
-  if (!context) throw new Error('useApp must be used within AppProvider')
-  return context
+  const ctx = useContext(AppContext)
+  if (!ctx) throw new Error('useApp must be used within AppProvider')
+  return ctx
 }

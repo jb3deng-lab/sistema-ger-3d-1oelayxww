@@ -13,11 +13,35 @@ import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar, CheckCircle2, Printer } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { InvoicePreview } from '@/components/quotes/InvoicePreview'
+import { getWhatsAppLink } from '@/lib/utils'
+import { WhatsAppIcon } from '@/components/ui/whatsapp-icon'
 
 export default function Orders() {
-  const { orders, quotes, updateOrderStatus } = useApp()
+  const { orders, quotes, updateOrderStatus, clients, settings } = useApp()
   const { toast } = useToast()
   const [invoiceQuote, setInvoiceQuote] = useState<any>(null)
+
+  const handleWhatsAppShare = (quote: any) => {
+    const client = clients.find((c) => c.id === quote.clientId)
+    const clientName = client?.name || quote.clientName
+    const phone = client?.phone
+    const companyName = settings?.companyName || 'nossa loja'
+
+    const message = `Olá ${clientName}, segue o detalhamento do seu pedido #${quote.id.slice(
+      -6,
+    )} na ${companyName}.\nTotal: R$ ${quote.finalPrice.toFixed(2)}`
+
+    const link = getWhatsAppLink(phone, message)
+
+    if (!phone) {
+      toast({
+        title: 'Aviso',
+        description: 'Cliente sem telefone cadastrado. Abrindo WhatsApp genérico.',
+      })
+    }
+
+    window.open(link, '_blank')
+  }
 
   const handleStatusChange = (id: string, newStatus: any) => {
     updateOrderStatus(id, newStatus)
@@ -109,6 +133,15 @@ export default function Orders() {
                       <SelectItem value="Entregue">Entregue</SelectItem>
                     </SelectContent>
                   </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 border-[#25D366]/20"
+                    onClick={() => handleWhatsAppShare(quote)}
+                    title="Compartilhar no WhatsApp"
+                  >
+                    <WhatsAppIcon className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"

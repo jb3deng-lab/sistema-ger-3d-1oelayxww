@@ -2,6 +2,9 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Printer } from 'lucide-react'
 import { useApp, Quote } from '@/store/AppContext'
+import { getWhatsAppLink } from '@/lib/utils'
+import { WhatsAppIcon } from '@/components/ui/whatsapp-icon'
+import { useToast } from '@/hooks/use-toast'
 
 export function InvoicePreview({
   quote,
@@ -13,6 +16,8 @@ export function InvoicePreview({
   onOpenChange: (o: boolean) => void
 }) {
   const { settings, clients } = useApp()
+  const { toast } = useToast()
+
   if (!quote) return null
 
   const client = clients.find((c) => c.id === quote.clientId) || {
@@ -23,10 +28,35 @@ export function InvoicePreview({
     phone: '',
   }
 
+  const handleWhatsAppShare = () => {
+    const companyName = settings?.companyName || 'nossa loja'
+    const message = `Olá ${client.name}, segue o detalhamento do seu pedido #${quote.id.slice(
+      -6,
+    )} na ${companyName}.\nTotal: R$ ${quote.finalPrice.toFixed(2)}`
+
+    const link = getWhatsAppLink(client.phone, message)
+
+    if (!client.phone) {
+      toast({
+        title: 'Aviso',
+        description: 'Cliente sem telefone cadastrado. Abrindo WhatsApp genérico.',
+      })
+    }
+
+    window.open(link, '_blank')
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl bg-white text-black print:m-0 print:p-0 print:border-none print:shadow-none print:max-w-full print:w-full sm:max-h-[90vh] overflow-y-auto print:overflow-visible">
-        <div className="flex justify-end print:hidden mb-4 border-b pb-4">
+        <div className="flex justify-end gap-2 print:hidden mb-4 border-b pb-4">
+          <Button
+            onClick={handleWhatsAppShare}
+            variant="outline"
+            className="gap-2 text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 border-[#25D366]/20"
+          >
+            <WhatsAppIcon className="w-4 h-4" /> Compartilhar
+          </Button>
           <Button
             onClick={() => window.print()}
             className="gap-2 bg-indigo-600 hover:bg-indigo-700"

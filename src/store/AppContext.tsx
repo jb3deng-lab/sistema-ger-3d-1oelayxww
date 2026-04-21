@@ -304,17 +304,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addClient = async (c: Client) => {
     setClients((p) => [c, ...p])
-    await supabase
-      .from('clients')
-      .insert({
-        user_id: user!.id,
-        id: c.id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        document: c.document,
-        address: c.address,
-      })
+    await supabase.from('clients').insert({
+      user_id: user!.id,
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      document: c.document,
+      address: c.address,
+    })
   }
   const updateClient = async (id: string, d: Partial<Client>) => {
     setClients((p) => p.map((c) => (c.id === id ? { ...c, ...d } : c)))
@@ -327,16 +325,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addMachine = async (m: Machine) => {
     setMachines((p) => [m, ...p])
-    await supabase
-      .from('machines')
-      .insert({
-        id: m.id,
-        user_id: user!.id,
-        name: m.name,
-        purchase_value: m.purchaseValue,
-        useful_life_hours: m.usefulLifeHours,
-        depreciation_rate: m.depreciationRate,
-      })
+    await supabase.from('machines').insert({
+      id: m.id,
+      user_id: user!.id,
+      name: m.name,
+      purchase_value: m.purchaseValue,
+      useful_life_hours: m.usefulLifeHours,
+      depreciation_rate: m.depreciationRate,
+    })
   }
   const updateMachine = async (id: string, d: Partial<Machine>) => {
     setMachines((p) => p.map((m) => (m.id === id ? { ...m, ...d } : m)))
@@ -357,20 +353,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addFilament = async (f: Filament) => {
     setFilaments((p) => [f, ...p])
-    await supabase
-      .from('filaments')
-      .insert({
-        id: f.id,
-        user_id: user!.id,
-        name: f.name,
-        type: f.type,
-        color_hex: f.colorHex,
-        initial_weight: f.initialWeight,
-        current_weight: f.currentWeight,
-        brand: f.brand,
-        purchase_date: f.purchaseDate,
-        cost_per_kg: f.costPerKg,
-      })
+    await supabase.from('filaments').insert({
+      id: f.id,
+      user_id: user!.id,
+      name: f.name,
+      type: f.type,
+      color_hex: f.colorHex,
+      initial_weight: f.initialWeight,
+      current_weight: f.currentWeight,
+      brand: f.brand,
+      purchase_date: f.purchaseDate,
+      cost_per_kg: f.costPerKg,
+    })
   }
   const updateFilament = async (id: string, d: Partial<Filament>) => {
     setFilaments((p) => p.map((f) => (f.id === id ? { ...f, ...d } : f)))
@@ -395,67 +389,61 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addQuote = async (q: Quote) => {
     setQuotes((p) => [q, ...p])
-    await supabase
-      .from('quotes')
-      .insert({
-        id: q.id,
-        user_id: user!.id,
-        client_id: q.clientId,
-        client_name: q.clientName,
-        total_material: q.totalCosts.material,
-        total_machine: q.totalCosts.machine,
-        total_energy: q.totalCosts.energy,
-        total_total: q.totalCosts.total,
-        suggested_price: q.suggestedPrice,
-        discount: q.discount,
-        final_price: q.finalPrice,
-        status: q.status,
-        date: q.date,
-      })
+    await supabase.from('quotes').insert({
+      id: q.id,
+      user_id: user!.id,
+      client_id: q.clientId,
+      client_name: q.clientName,
+      total_material: q.totalCosts.material,
+      total_machine: q.totalCosts.machine,
+      total_energy: q.totalCosts.energy,
+      total_total: q.totalCosts.total,
+      suggested_price: q.suggestedPrice,
+      discount: q.discount,
+      final_price: q.finalPrice,
+      status: q.status,
+      date: q.date,
+    })
     if (q.items.length)
-      await supabase
-        .from('quote_items')
-        .insert(
-          q.items.map((i) => ({
-            id: i.id,
-            quote_id: q.id,
-            piece_name: i.pieceName,
-            weight: i.weight,
-            time_hours: i.timeHours,
-            filament_id: i.filamentId,
-            machine_id: i.machineId,
-            quantity: i.quantity,
-            costs_material: i.costs.material,
-            costs_machine: i.costs.machine,
-            costs_energy: i.costs.energy,
-            costs_total: i.costs.total,
-            suggested_price: i.suggestedPrice,
-          })),
-        )
+      await supabase.from('quote_items').insert(
+        q.items.map((i) => ({
+          id: i.id,
+          quote_id: q.id,
+          piece_name: i.pieceName,
+          weight: i.weight,
+          time_hours: i.timeHours,
+          filament_id: i.filamentId,
+          machine_id: i.machineId,
+          quantity: i.quantity,
+          costs_material: i.costs.material,
+          costs_machine: i.costs.machine,
+          costs_energy: i.costs.energy,
+          costs_total: i.costs.total,
+          suggested_price: i.suggestedPrice,
+        })),
+      )
   }
   const updateQuote = async (id: string, d: Partial<Quote>) => {
     setQuotes((p) => p.map((q) => (q.id === id ? { ...q, ...d } : q)))
     if (d.items) {
       await supabase.from('quote_items').delete().eq('quote_id', id)
-      await supabase
-        .from('quote_items')
-        .insert(
-          d.items.map((i) => ({
-            id: i.id,
-            quote_id: id,
-            piece_name: i.pieceName,
-            weight: i.weight,
-            time_hours: i.timeHours,
-            filament_id: i.filamentId,
-            machine_id: i.machineId,
-            quantity: i.quantity,
-            costs_material: i.costs.material,
-            costs_machine: i.costs.machine,
-            costs_energy: i.costs.energy,
-            costs_total: i.costs.total,
-            suggested_price: i.suggestedPrice,
-          })),
-        )
+      await supabase.from('quote_items').insert(
+        d.items.map((i) => ({
+          id: i.id,
+          quote_id: id,
+          piece_name: i.pieceName,
+          weight: i.weight,
+          time_hours: i.timeHours,
+          filament_id: i.filamentId,
+          machine_id: i.machineId,
+          quantity: i.quantity,
+          costs_material: i.costs.material,
+          costs_machine: i.costs.machine,
+          costs_energy: i.costs.energy,
+          costs_total: i.costs.total,
+          suggested_price: i.suggestedPrice,
+        })),
+      )
     }
     const updates: any = {}
     if (d.status) updates.status = d.status
@@ -464,15 +452,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addOrder = async (o: Order) => {
     setOrders((p) => [o, ...p])
-    await supabase
-      .from('orders')
-      .insert({
-        id: o.id,
-        user_id: user!.id,
-        quote_id: o.quoteId,
-        status: o.status,
-        start_date: o.startDate,
-      })
+    await supabase.from('orders').insert({
+      id: o.id,
+      user_id: user!.id,
+      quote_id: o.quoteId,
+      status: o.status,
+      start_date: o.startDate,
+    })
   }
   const updateOrderStatus = async (id: string, s: Order['status']) => {
     setOrders((p) => p.map((o) => (o.id === id ? { ...o, status: s } : o)))
@@ -480,16 +466,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
   const addTransaction = async (t: Transaction) => {
     setTransactions((p) => [t, ...p])
-    await supabase
-      .from('transactions')
-      .insert({
-        id: t.id,
-        user_id: user!.id,
-        description: t.description,
-        type: t.type,
-        amount: t.amount,
-        date: t.date,
-      })
+    await supabase.from('transactions').insert({
+      id: t.id,
+      user_id: user!.id,
+      description: t.description,
+      type: t.type,
+      amount: t.amount,
+      date: t.date,
+    })
   }
 
   const updateQuoteStatus = async (id: string, s: Quote['status']) => {

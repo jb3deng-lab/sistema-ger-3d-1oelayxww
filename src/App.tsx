@@ -14,8 +14,9 @@ import SettingsPage from './pages/Settings'
 import Clients from './pages/Clients'
 import Machines from './pages/Machines'
 import NotFound from './pages/NotFound'
+import Register from './pages/Register'
+import Login from './pages/Login'
 import { AuthProvider, useAuth } from '@/hooks/use-auth'
-import { Login } from '@/pages/Login'
 
 const ProtectedRoutes = () => {
   const { user, loading } = useAuth()
@@ -42,6 +43,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route element={<ProtectedRoutes />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />

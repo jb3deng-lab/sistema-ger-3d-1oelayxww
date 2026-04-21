@@ -15,8 +15,8 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { Printer } from 'lucide-react'
 
-export default function Login() {
-  const { signIn } = useAuth()
+export default function Register() {
+  const { signUp } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -26,16 +26,20 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const { error } = await signIn(email, password)
+    const { error } = await signUp(email, password)
 
     if (error) {
       toast({
-        title: 'Erro ao entrar',
-        description: 'Credenciais inválidas.',
+        title: 'Erro ao cadastrar',
+        description: error.message || 'Ocorreu um erro ao criar a conta.',
         variant: 'destructive',
       })
       setLoading(false)
     } else {
+      toast({
+        title: 'Cadastro realizado!',
+        description: 'Sua conta foi criada com sucesso.',
+      })
       navigate('/')
     }
   }
@@ -48,8 +52,8 @@ export default function Login() {
             <Printer className="w-8 h-8" />
           </div>
           <div>
-            <CardTitle className="text-2xl">Sistema 3D Vendas</CardTitle>
-            <CardDescription>Faça login para gerenciar sua produção</CardDescription>
+            <CardTitle className="text-2xl">Criar Conta</CardTitle>
+            <CardDescription>Cadastre-se no Sistema 3D Vendas</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -72,18 +76,19 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
+                minLength={6}
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Cadastrando...' : 'Cadastrar'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t p-4 mt-4">
           <p className="text-sm text-muted-foreground">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-primary hover:underline font-medium">
-              Cadastre-se
+            Já tem uma conta?{' '}
+            <Link to="/login" className="text-primary hover:underline font-medium">
+              Faça login
             </Link>
           </p>
         </CardFooter>

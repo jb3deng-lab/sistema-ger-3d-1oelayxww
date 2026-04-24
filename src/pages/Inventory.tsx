@@ -13,13 +13,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Plus, Edit2 } from 'lucide-react'
 
 export default function Inventory() {
   const { filaments, addFilament, updateFilament, updateFilamentWeight, deleteFilament } = useApp()
   const { toast } = useToast()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (location.state?.openNew) {
+      handleOpenNew()
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state])
 
   const [formData, setFormData] = useState({
     name: '',

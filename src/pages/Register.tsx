@@ -84,7 +84,7 @@ export default function Register() {
           </div>
           <div>
             <CardTitle className="text-2xl">Criar Conta</CardTitle>
-            <CardDescription>Cadastre-se no Sistema 3D Vendas</CardDescription>
+            <CardDescription>Cadastre-se no Sistema de Gestão 3D</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

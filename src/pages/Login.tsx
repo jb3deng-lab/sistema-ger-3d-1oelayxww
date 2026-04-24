@@ -48,9 +48,13 @@ export default function Login() {
     const { error } = await signIn(email, password)
 
     if (error) {
+      let msg = 'Credenciais inválidas.'
+      if (error.message.includes('Email not confirmed') || error.message.includes('confirm')) {
+        msg = 'Por favor, confirme seu e-mail na sua caixa de entrada antes de fazer login.'
+      }
       toast({
         title: 'Erro ao entrar',
-        description: 'Credenciais inválidas.',
+        description: msg,
         variant: 'destructive',
       })
       setLoading(false)
@@ -67,7 +71,7 @@ export default function Login() {
             <Printer3D className="w-8 h-8" />
           </div>
           <div>
-            <CardTitle className="text-2xl">Sistema 3D Vendas</CardTitle>
+            <CardTitle className="text-2xl">Sistema de Gestão 3D</CardTitle>
             <CardDescription>Faça login para gerenciar sua produção</CardDescription>
           </div>
         </CardHeader>

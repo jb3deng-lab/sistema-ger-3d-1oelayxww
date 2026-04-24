@@ -113,7 +113,6 @@ export default function Layout() {
     { title: 'Clientes', path: '/clients', icon: Users },
     { title: 'Máquinas', path: '/machines', icon: Box },
     { title: 'Financeiro', path: '/financial', icon: DollarSign },
-    { title: 'Configurações', path: '/settings', icon: Settings },
   ]
 
   return (
@@ -121,7 +120,7 @@ export default function Layout() {
       <Sidebar>
         <SidebarHeader className="p-4 flex items-center justify-between">
           <div className="font-bold text-lg text-primary flex items-center gap-2">
-            <Box className="w-5 h-5" /> Ger-3D
+            <Box className="w-5 h-5" /> Gestão 3D
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -138,7 +137,17 @@ export default function Layout() {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="p-4 border-t">
+        <SidebarFooter className="p-4 border-t space-y-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={location.pathname === '/settings'}>
+                <Link to="/settings">
+                  <Settings className="w-4 h-4 mr-2" />
+                  <span>Configurações</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start overflow-hidden">
@@ -177,13 +186,18 @@ export default function Layout() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to="/clients" className="cursor-pointer">
+                <Link to="/clients" state={{ openNew: true }} className="cursor-pointer">
                   Novo Cliente
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/quotes" className="cursor-pointer">
+                <Link to="/quotes" state={{ openNew: true }} className="cursor-pointer">
                   Novo Orçamento
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/inventory" state={{ openNew: true }} className="cursor-pointer">
+                  Novo Filamento
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

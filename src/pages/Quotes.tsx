@@ -11,12 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { FileText, CheckCircle, XCircle, Edit, Plus } from 'lucide-react'
+import { FileText, CheckCircle, XCircle, Edit, Plus, Trash2 } from 'lucide-react'
 import { QuoteForm } from '@/components/quotes/QuoteForm'
 import { InvoicePreview } from '@/components/quotes/InvoicePreview'
 
 export default function Quotes() {
-  const { quotes, updateQuoteStatus } = useApp()
+  const { quotes, updateQuoteStatus, addQuote, deleteQuote } = useApp()
   const [formOpen, setFormOpen] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [invoiceQuote, setInvoiceQuote] = useState<any>(null)
@@ -95,6 +95,23 @@ export default function Quotes() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => {
+                          if (window.confirm('Deseja duplicar este orçamento?')) {
+                            addQuote({
+                              ...quote,
+                              id: Date.now().toString(),
+                              status: 'Pendente',
+                              date: new Date().toISOString(),
+                            })
+                          }
+                        }}
+                        title="Duplicar"
+                      >
+                        <Plus className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleOpenEdit(quote.id)}
                         title="Editar"
                       >
@@ -106,7 +123,7 @@ export default function Quotes() {
                         onClick={() => setInvoiceQuote(quote)}
                         title="Gerar PDF (Nota)"
                       >
-                        <FileText className="h-4 w-4 text-indigo-500" />
+                        <FileText className="h-4 w-4 text-primary" />
                       </Button>
                       {quote.status === 'Pendente' && (
                         <>
@@ -128,7 +145,20 @@ export default function Quotes() {
                           </Button>
                         </>
                       )}
-                    </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (window.confirm('Tem certeza que deseja excluir este orçamento?')) {
+                            deleteQuote(quote.id)
+                          }
+                        }}
+                        title="Excluir"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>{' '}
                   </TableCell>
                 </TableRow>
               ))}

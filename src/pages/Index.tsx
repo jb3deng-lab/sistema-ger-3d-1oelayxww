@@ -37,14 +37,28 @@ export default function Index() {
   const activeOrders = orders.filter((o) => o.status === 'Em produção' || o.status === 'Aguardando')
   const lowFilaments = filaments.filter((f) => f.currentWeight < 100)
 
-  // Mock chart data - dynamically appending the filtered period at the end
-  const chartData = [
-    { name: 'Maio', Entradas: 400, Saídas: 240 },
-    { name: 'Jun', Entradas: 300, Saídas: 139 },
-    { name: 'Jul', Entradas: 200, Saídas: 980 },
-    { name: 'Ago', Entradas: 278, Saídas: 390 },
-    { name: 'Período', Entradas: entradas, Saídas: saidas },
-  ]
+  const phasesCount = {
+    Aguardando: orders.filter((o) => o.status === 'Aguardando').length,
+    'Em produção': orders.filter((o) => o.status === 'Em produção').length,
+    Finalizado: orders.filter((o) => o.status === 'Finalizado').length,
+    Entregue: orders.filter((o) => o.status === 'Entregue').length,
+  }
+
+  const chartData = useMemo(() => {
+    const grouped = filteredTransactions.reduce(
+      (acc, t) => {
+        const day = new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+        if (!acc[day]) acc[day] = { name: day, Entradas: 0, Saídas: 0 }
+        if (t.type === 'Entrada') acc[day].Entradas += t.amount
+        else acc[day].Saídas += t.amount
+        return acc
+      },
+      {} as Record<string, any>,
+    )
+    const result = Object.values(grouped)
+    if (result.length === 0) return [{ name: 'Período', Entradas: 0, Saídas: 0 }]
+    return result
+  }, [filteredTransactions])
 
   const chartConfig = {
     Entradas: { label: 'Entradas', color: 'hsl(160, 84%, 39%)' },
@@ -104,12 +118,28 @@ export default function Index() {
         <Card className="rounded-xl border-none shadow-sm bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pedidos Ativos
+              Pedidos (Fases)
             </CardTitle>
             <PackageSearch className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{activeOrders.length}</div>
+            <div className="text-2xl font-bold text-foreground mb-2">
+              {activeOrders.length} Ativos
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+              <div className="flex justify-between bg-muted/50 p-1.5 rounded">
+                <span className="w-16 truncate">Aguard.</span> <b>{phasesCount['Aguardando']}</b>
+              </div>
+              <div className="flex justify-between bg-muted/50 p-1.5 rounded">
+                <span className="w-16 truncate">Em prod.</span> <b>{phasesCount['Em produção']}</b>
+              </div>
+              <div className="flex justify-between bg-muted/50 p-1.5 rounded">
+                <span className="w-16 truncate">Finaliz.</span> <b>{phasesCount['Finalizado']}</b>
+              </div>
+              <div className="flex justify-between bg-muted/50 p-1.5 rounded">
+                <span className="w-16 truncate">Entregue</span> <b>{phasesCount['Entregue']}</b>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card className="rounded-xl border-none shadow-sm bg-card">

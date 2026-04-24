@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast'
 import { Plus, Edit2 } from 'lucide-react'
 
 export default function Inventory() {
-  const { filaments, addFilament, updateFilament, updateFilamentWeight } = useApp()
+  const { filaments, addFilament, updateFilament, updateFilamentWeight, deleteFilament } = useApp()
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -202,9 +202,25 @@ export default function Inventory() {
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full">
-                Salvar
-              </Button>
+              <div className="flex gap-2">
+                {editingId && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => {
+                      if (window.confirm('Tem certeza que deseja excluir este filamento?')) {
+                        deleteFilament(editingId)
+                        setOpen(false)
+                      }
+                    }}
+                  >
+                    Excluir
+                  </Button>
+                )}
+                <Button type="submit" className="flex-1">
+                  Salvar
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
@@ -221,14 +237,34 @@ export default function Inventory() {
               className="border-none shadow-sm hover:shadow-md transition-all cursor-pointer group relative bg-card"
               onClick={() => handleAdjustWeight(fil.id, fil.currentWeight)}
             >
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-background/50 hover:bg-background"
-                onClick={(e) => handleOpenEdit(fil, e)}
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 bg-background/50 hover:bg-background"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    addFilament({
+                      ...fil,
+                      id: Date.now().toString(),
+                      currentWeight: fil.initialWeight,
+                      name: `${fil.name} (Cópia)`,
+                    })
+                    toast({ title: 'Filamento Duplicado' })
+                  }}
+                  title="Duplicar"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 bg-background/50 hover:bg-background"
+                  onClick={(e) => handleOpenEdit(fil, e)}
+                >
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              </div>
               <CardContent className="p-4 flex flex-col items-center text-center space-y-3">
                 <div className="relative">
                   <div

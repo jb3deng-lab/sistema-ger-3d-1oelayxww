@@ -2,8 +2,13 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 
+export type Profile = {
+  id: string
+  name: string
+  address: string
+}
+
 export type Settings = {
-  filamentCost: number
   energyCost: number
   machineCost: number
   profitMargin: number
@@ -14,6 +19,7 @@ export type Settings = {
   companyAddress: string
   companyLogo: string
 }
+
 export type Filament = {
   id: string
   name: string
@@ -25,6 +31,7 @@ export type Filament = {
   purchaseDate: string
   costPerKg: number
 }
+
 export type Client = {
   id: string
   name: string
@@ -33,13 +40,26 @@ export type Client = {
   document: string
   address: string
 }
+
+export type MaintenanceItem = {
+  id: string
+  name: string
+  description: string
+  code: string
+  cost: number
+  lifeHours: number
+}
+
 export type Machine = {
   id: string
   name: string
   purchaseValue: number
   usefulLifeHours: number
   depreciationRate: number
+  powerWatts: number
+  maintenanceItems: MaintenanceItem[]
 }
+
 export type QuoteItem = {
   id: string
   pieceName: string
@@ -51,6 +71,7 @@ export type QuoteItem = {
   costs: { material: number; machine: number; energy: number; total: number }
   suggestedPrice: number
 }
+
 export type Quote = {
   id: string
   clientId: string
@@ -58,17 +79,21 @@ export type Quote = {
   items: QuoteItem[]
   totalCosts: { material: number; machine: number; energy: number; total: number }
   suggestedPrice: number
+  packagingCost: number
+  shippingCost: number
   discount: number
   finalPrice: number
   status: 'Pendente' | 'Aprovado' | 'Recusado'
   date: string
 }
+
 export type Order = {
   id: string
   quoteId: string
   status: 'Aguardando' | 'Em produção' | 'Finalizado' | 'Entregue'
   startDate: string
 }
+
 export type Transaction = {
   id: string
   description: string
@@ -78,12 +103,15 @@ export type Transaction = {
 }
 
 type AppContextType = {
+  profile: Profile | null
+  updateProfile: (p: Partial<Profile>) => Promise<void>
   settings: Settings
   updateSettings: (s: Settings) => void
   filaments: Filament[]
   addFilament: (f: Filament) => void
   updateFilament: (id: string, data: Partial<Filament>) => void
   updateFilamentWeight: (id: string, weight: number) => void
+  deleteFilament: (id: string) => void
   clients: Client[]
   addClient: (c: Client) => void
   updateClient: (id: string, data: Partial<Client>) => void
@@ -95,6 +123,7 @@ type AppContextType = {
   quotes: Quote[]
   addQuote: (q: Quote) => void
   updateQuote: (id: string, data: Partial<Quote>) => void
+  deleteQuote: (id: string) => void
   updateQuoteStatus: (id: string, status: Quote['status']) => void
   orders: Order[]
   addOrder: (o: Order) => void
@@ -106,7 +135,6 @@ type AppContextType = {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 const defaultSettings: Settings = {
-  filamentCost: 150,
   energyCost: 1.5,
   machineCost: 2.0,
   profitMargin: 50,
@@ -120,6 +148,7 @@ const defaultSettings: Settings = {
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth()
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [settings, setSettings] = useState<Settings>(defaultSettings)
   const [filaments, setFilaments] = useState<Filament[]>([])
   const [clients, setClients] = useState<Client[]>([])
@@ -132,14 +161,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user) return
     const loadData = async () => {
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (p) setProfile({ id: p.id, name: p.name, address: p.address })
+
       const { data: s } = await supabase
         .from('settings')
         .select('*')
         .eq('user_id', user.id)
         .single()
-      if (s)
+      if (s) {
         setSettings({
-          filamentCost: s.filament_cost,
           energyCost: s.energy_cost,
           machineCost: s.machine_cost,
           profitMargin: s.profit_margin,
@@ -150,7 +181,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           companyAddress: s.company_address,
           companyLogo: s.company_logo,
         })
-      else await supabase.from('settings').insert({ user_id: user.id }).select().single()
+      } else {
+        await supabase.from('settings').insert({ user_id: user.id }).select().single()
+      }
 
       const { data: c } = await supabase
         .from('clients')
@@ -182,6 +215,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             purchaseValue: Number(x.purchase_value),
             usefulLifeHours: Number(x.useful_life_hours),
             depreciationRate: Number(x.depreciation_rate),
+            powerWatts: Number(x.power_watts || 0),
+            maintenanceItems: (x.maintenance_items as any) || [],
           })),
         )
 
@@ -223,6 +258,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               total: Number(x.total_total),
             },
             suggestedPrice: Number(x.suggested_price),
+            packagingCost: Number(x.packaging_cost || 0),
+            shippingCost: Number(x.shipping_cost || 0),
             discount: Number(x.discount),
             finalPrice: Number(x.final_price),
             status: x.status as any,
@@ -282,13 +319,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     loadData()
   }, [user])
 
+  const updateProfile = async (p: Partial<Profile>) => {
+    if (!user || !profile) return
+    const updated = { ...profile, ...p }
+    setProfile(updated)
+    await supabase
+      .from('profiles')
+      .update({ name: updated.name, address: updated.address })
+      .eq('id', user.id)
+  }
+
   const updateSettings = async (s: Settings) => {
     if (!user) return
     setSettings(s)
     await supabase
       .from('settings')
       .update({
-        filament_cost: s.filamentCost,
         energy_cost: s.energyCost,
         machine_cost: s.machineCost,
         profit_margin: s.profitMargin,
@@ -304,15 +350,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addClient = async (c: Client) => {
     setClients((p) => [c, ...p])
-    await supabase.from('clients').insert({
-      user_id: user!.id,
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      phone: c.phone,
-      document: c.document,
-      address: c.address,
-    })
+    await supabase
+      .from('clients')
+      .insert({
+        user_id: user!.id,
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        document: c.document,
+        address: c.address,
+      })
   }
   const updateClient = async (id: string, d: Partial<Client>) => {
     setClients((p) => p.map((c) => (c.id === id ? { ...c, ...d } : c)))
@@ -332,6 +380,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       purchase_value: m.purchaseValue,
       useful_life_hours: m.usefulLifeHours,
       depreciation_rate: m.depreciationRate,
+      power_watts: m.powerWatts,
+      maintenance_items: m.maintenanceItems as any,
     })
   }
   const updateMachine = async (id: string, d: Partial<Machine>) => {
@@ -343,6 +393,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         purchase_value: d.purchaseValue,
         useful_life_hours: d.usefulLifeHours,
         depreciation_rate: d.depreciationRate,
+        power_watts: d.powerWatts,
+        maintenance_items: d.maintenanceItems as any,
       })
       .eq('id', id)
   }
@@ -386,6 +438,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setFilaments((p) => p.map((f) => (f.id === id ? { ...f, currentWeight: w } : f)))
     await supabase.from('filaments').update({ current_weight: w }).eq('id', id)
   }
+  const deleteFilament = async (id: string) => {
+    setFilaments((p) => p.filter((f) => f.id !== id))
+    await supabase.from('filaments').delete().eq('id', id)
+  }
 
   const addQuote = async (q: Quote) => {
     setQuotes((p) => [q, ...p])
@@ -399,12 +455,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       total_energy: q.totalCosts.energy,
       total_total: q.totalCosts.total,
       suggested_price: q.suggestedPrice,
+      packaging_cost: q.packagingCost,
+      shipping_cost: q.shippingCost,
       discount: q.discount,
       final_price: q.finalPrice,
       status: q.status,
       date: q.date,
     })
-    if (q.items.length)
+    if (q.items.length) {
       await supabase.from('quote_items').insert(
         q.items.map((i) => ({
           id: i.id,
@@ -422,6 +480,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           suggested_price: i.suggestedPrice,
         })),
       )
+    }
   }
   const updateQuote = async (id: string, d: Partial<Quote>) => {
     setQuotes((p) => p.map((q) => (q.id === id ? { ...q, ...d } : q)))
@@ -447,18 +506,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     const updates: any = {}
     if (d.status) updates.status = d.status
+    if (d.packagingCost !== undefined) updates.packaging_cost = d.packagingCost
+    if (d.shippingCost !== undefined) updates.shipping_cost = d.shippingCost
+    if (d.discount !== undefined) updates.discount = d.discount
+    if (d.finalPrice !== undefined) updates.final_price = d.finalPrice
+    if (d.totalCosts !== undefined) {
+      updates.total_material = d.totalCosts.material
+      updates.total_machine = d.totalCosts.machine
+      updates.total_energy = d.totalCosts.energy
+      updates.total_total = d.totalCosts.total
+    }
+    if (d.suggestedPrice !== undefined) updates.suggested_price = d.suggestedPrice
     if (Object.keys(updates).length) await supabase.from('quotes').update(updates).eq('id', id)
+  }
+  const deleteQuote = async (id: string) => {
+    setQuotes((p) => p.filter((q) => q.id !== id))
+    await supabase.from('quotes').delete().eq('id', id)
   }
 
   const addOrder = async (o: Order) => {
     setOrders((p) => [o, ...p])
-    await supabase.from('orders').insert({
-      id: o.id,
-      user_id: user!.id,
-      quote_id: o.quoteId,
-      status: o.status,
-      start_date: o.startDate,
-    })
+    await supabase
+      .from('orders')
+      .insert({
+        id: o.id,
+        user_id: user!.id,
+        quote_id: o.quoteId,
+        status: o.status,
+        start_date: o.startDate,
+      })
   }
   const updateOrderStatus = async (id: string, s: Order['status']) => {
     setOrders((p) => p.map((o) => (o.id === id ? { ...o, status: s } : o)))
@@ -466,14 +542,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
   const addTransaction = async (t: Transaction) => {
     setTransactions((p) => [t, ...p])
-    await supabase.from('transactions').insert({
-      id: t.id,
-      user_id: user!.id,
-      description: t.description,
-      type: t.type,
-      amount: t.amount,
-      date: t.date,
-    })
+    await supabase
+      .from('transactions')
+      .insert({
+        id: t.id,
+        user_id: user!.id,
+        description: t.description,
+        type: t.type,
+        amount: t.amount,
+        date: t.date,
+      })
   }
 
   const updateQuoteStatus = async (id: string, s: Quote['status']) => {
@@ -558,12 +636,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AppContext.Provider
       value={{
+        profile,
+        updateProfile,
         settings,
         updateSettings,
         filaments,
         addFilament,
         updateFilament,
         updateFilamentWeight,
+        deleteFilament,
         clients,
         addClient,
         updateClient,
@@ -575,6 +656,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         quotes,
         addQuote,
         updateQuote,
+        deleteQuote,
         updateQuoteStatus,
         orders,
         addOrder,

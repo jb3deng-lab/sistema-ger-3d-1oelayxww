@@ -143,22 +143,25 @@ export function InvoicePreview({
           <div className="flex justify-end pt-4">
             <div className="w-full sm:w-1/2 space-y-2">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Subtotal:</span>
+                <span>Subtotal Itens:</span>
                 <span>R$ {quote.suggestedPrice.toFixed(2)}</span>
               </div>
+              {!!quote.packagingCost && quote.packagingCost > 0 && (
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Embalagem:</span>
+                  <span>R$ {quote.packagingCost.toFixed(2)}</span>
+                </div>
+              )}
+              {!!quote.shippingCost && quote.shippingCost > 0 && (
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Frete / Transporte:</span>
+                  <span>R$ {quote.shippingCost.toFixed(2)}</span>
+                </div>
+              )}
               {!!quote.discount && quote.discount > 0 && (
                 <div className="flex justify-between text-sm text-slate-600 text-red-600">
                   <span>Desconto:</span>
                   <span>- R$ {quote.discount.toFixed(2)}</span>
-                </div>
-              )}
-              {quote.finalPrice !== quote.suggestedPrice - (quote.discount || 0) && (
-                <div className="flex justify-between text-sm text-slate-600">
-                  <span>Outros Ajustes:</span>
-                  <span>
-                    R${' '}
-                    {(quote.finalPrice - (quote.suggestedPrice - (quote.discount || 0))).toFixed(2)}
-                  </span>
                 </div>
               )}
               <div className="flex justify-between py-3 border-t-2 border-slate-800 font-bold text-xl text-slate-800">

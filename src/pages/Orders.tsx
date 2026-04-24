@@ -27,9 +27,22 @@ export default function Orders() {
     const phone = client?.phone
     const companyName = settings?.companyName || 'nossa loja'
 
-    const message = `Olá ${clientName}, segue o detalhamento do seu pedido #${quote.id.slice(
-      -6,
-    )} na ${companyName}.\nTotal: R$ ${quote.finalPrice.toFixed(2)}`
+    const itemsText = quote.items
+      .map((i: any) => `- ${i.quantity}x ${i.pieceName} (R$ ${i.suggestedPrice.toFixed(2)}/un)`)
+      .join('\n')
+
+    let message =
+      `*ORÇAMENTO / PEDIDO #${quote.id.slice(-6)}* 📄\n\n` +
+      `*Cliente:* ${clientName}\n` +
+      `*Empresa:* ${companyName}\n\n` +
+      `*Itens:*\n${itemsText}\n\n` +
+      `*Subtotal:* R$ ${quote.suggestedPrice.toFixed(2)}\n`
+
+    if (quote.packagingCost) message += `*Embalagem:* R$ ${quote.packagingCost.toFixed(2)}\n`
+    if (quote.shippingCost) message += `*Frete:* R$ ${quote.shippingCost.toFixed(2)}\n`
+    if (quote.discount) message += `*Desconto:* - R$ ${quote.discount.toFixed(2)}\n`
+
+    message += `\n*TOTAL: R$ ${quote.finalPrice.toFixed(2)}*\n\n` + `Obrigado pela preferência!`
 
     const link = getWhatsAppLink(phone, message)
 

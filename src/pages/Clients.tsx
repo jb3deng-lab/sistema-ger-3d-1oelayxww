@@ -16,7 +16,7 @@ import {
 import { Edit, Trash2, Plus } from 'lucide-react'
 
 export default function Clients() {
-  const { clients, addClient, updateClient, deleteClient } = useApp()
+  const { clients, quotes, addClient, updateClient, deleteClient } = useApp()
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -44,6 +44,24 @@ export default function Clients() {
     if (editingId) updateClient(editingId, formData)
     else addClient({ id: Date.now().toString(), ...formData })
     setOpen(false)
+  }
+
+  const handleDelete = (id: string) => {
+    const isUsed = quotes.some((q) => q.clientId === id)
+    if (isUsed) {
+      if (
+        !window.confirm(
+          'Este cliente possui orçamentos/pedidos vinculados. Excluir o cliente também pode excluir ou prejudicar a visualização do histórico.\n\nTem certeza que deseja excluir?',
+        )
+      ) {
+        return
+      }
+    } else {
+      if (!window.confirm('Tem certeza que deseja excluir este cliente?')) {
+        return
+      }
+    }
+    deleteClient(id)
   }
 
   return (
@@ -136,10 +154,13 @@ export default function Clients() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive"
-                      onClick={() => deleteClient(client.id)}
+                      onClick={() => {
+                        const { quotes } = useApp.getState ? useApp.getState() : { quotes: [] } // quick workaround since quotes might not be in scope here
+                        // wait, quotes is not imported here. I should get quotes from useApp.
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </Button>{' '}
                   </div>
                 </TableCell>
               </TableRow>

@@ -13,7 +13,6 @@ export default function Settings() {
   const { toast } = useToast()
 
   const [calcData, setCalcData] = useState({
-    filamentCost: '',
     energyCost: '',
     machineCost: '',
     profitMargin: '',
@@ -30,7 +29,6 @@ export default function Settings() {
   useEffect(() => {
     if (settings) {
       setCalcData({
-        filamentCost: settings.filamentCost?.toString() ?? '',
         energyCost: settings.energyCost?.toString() ?? '',
         machineCost: settings.machineCost?.toString() ?? '',
         profitMargin: settings.profitMargin?.toString() ?? '',
@@ -50,7 +48,6 @@ export default function Settings() {
     e.preventDefault()
     updateSettings({
       ...settings,
-      filamentCost: parseFloat(calcData.filamentCost) || 0,
       energyCost: parseFloat(calcData.energyCost) || 0,
       machineCost: parseFloat(calcData.machineCost) || 0,
       profitMargin: parseFloat(calcData.profitMargin) || 0,
@@ -65,6 +62,29 @@ export default function Settings() {
       title: 'Empresa Atualizada',
       description: 'Os dados aparecerão nas próximas notas geradas.',
     })
+  }
+
+  const handlePhoneChange = (val: string) => {
+    // Basic formatting (XX) XXXXX-XXXX
+    let v = val.replace(/\D/g, '')
+    if (v.length > 11) v = v.slice(0, 11)
+    if (v.length > 2) {
+      v = `(${v.slice(0, 2)}) ${v.slice(2)}`
+    }
+    if (v.length > 10) {
+      v = `${v.slice(0, 10)}-${v.slice(10)}`
+    }
+    setEmpresaData({ ...empresaData, companyPhone: v })
+  }
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (ev) =>
+        setEmpresaData({ ...empresaData, companyLogo: ev.target?.result as string })
+      reader.readAsDataURL(file)
+    }
   }
 
   return (
@@ -126,9 +146,8 @@ export default function Settings() {
                         <Label>Telefone</Label>
                         <Input
                           value={empresaData.companyPhone}
-                          onChange={(e) =>
-                            setEmpresaData({ ...empresaData, companyPhone: e.target.value })
-                          }
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          placeholder="(11) 99999-9999"
                         />
                       </div>
                       <div className="space-y-2">
@@ -143,28 +162,34 @@ export default function Settings() {
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2 flex flex-col items-center justify-center">
-                    <Label className="self-start">Logotipo</Label>
-                    <div
-                      className="w-full flex-1 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:bg-muted/50 transition-colors cursor-pointer p-4 text-center"
-                      onClick={() => {
-                        const url = prompt('Cole a URL da imagem (simulação de upload):')
-                        if (url) setEmpresaData({ ...empresaData, companyLogo: url })
-                      }}
-                    >
+                  <div className="space-y-2 flex flex-col">
+                    <Label>Logotipo da Empresa</Label>
+                    <div className="relative w-full flex-1 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:bg-muted/50 transition-colors cursor-pointer p-4 text-center overflow-hidden">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        title="Selecione um logo"
+                      />
                       {empresaData.companyLogo ? (
-                        <img
-                          src={empresaData.companyLogo}
-                          alt="Logo"
-                          className="max-h-40 object-contain"
-                        />
+                        <div className="flex flex-col items-center w-full h-full justify-center">
+                          <img
+                            src={empresaData.companyLogo}
+                            alt="Logo"
+                            className="max-h-40 object-contain"
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">Clique para trocar</p>
+                        </div>
                       ) : (
                         <>
                           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 text-primary">
                             <UploadCloud className="h-6 w-6" />
                           </div>
                           <p className="text-sm font-medium">Clique para fazer upload</p>
-                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG até 2MB</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Recomendado: PNG, JPG
+                          </p>
                         </>
                       )}
                     </div>
@@ -182,25 +207,13 @@ export default function Settings() {
           <Card className="border-none shadow-sm bg-card">
             <CardHeader>
               <CardTitle>Custos Base Padrão</CardTitle>
-              <CardDescription>
-                Valores default para novos itens (sobrepostos por seleções específicas).
-              </CardDescription>
+              <CardDescription>Valores default para cálculos de novos orçamentos.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveCalc} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>Custo Filamento (Fallback) (R$/kg)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={calcData.filamentCost}
-                      onChange={(e) => setCalcData({ ...calcData, filamentCost: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Custo Energia (R$/hora)</Label>
+                    <Label>Custo Energia (R$/kWh)</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -208,6 +221,9 @@ export default function Settings() {
                       value={calcData.energyCost}
                       onChange={(e) => setCalcData({ ...calcData, energyCost: e.target.value })}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Valor cobrado pela sua concessionária local.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>Custo Máquina Padrão (R$/hora)</Label>
@@ -219,7 +235,7 @@ export default function Settings() {
                       onChange={(e) => setCalcData({ ...calcData, machineCost: e.target.value })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Usado caso não selecione uma máquina da frota.
+                      Usado caso uma máquina cadastrada seja excluída posteriormente.
                     </p>
                   </div>
                   <div className="space-y-2">

@@ -19,14 +19,26 @@ export default function Register() {
   const { signUp } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [address, setAddress] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (password !== confirmPassword) {
+      return toast({
+        title: 'Erro',
+        description: 'As senhas não coincidem.',
+        variant: 'destructive',
+      })
+    }
     setLoading(true)
-    const { error } = await signUp(email, password)
+    const { error } = await signUp(email, password, name, address)
 
     if (error) {
       toast({
@@ -38,14 +50,14 @@ export default function Register() {
     } else {
       toast({
         title: 'Cadastro realizado!',
-        description: 'Sua conta foi criada com sucesso.',
+        description: 'Foi enviado um email pra confirmação.',
       })
-      navigate('/')
+      navigate('/login')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4 py-8">
       <Card className="w-full max-w-md border-none shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
@@ -59,6 +71,15 @@ export default function Register() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label>Nome Completo</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Seu nome"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>E-mail</Label>
               <Input
                 type="email"
@@ -69,15 +90,46 @@ export default function Register() {
               />
             </div>
             <div className="space-y-2">
+              <Label>Endereço</Label>
+              <Input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Seu endereço completo"
+              />
+            </div>
+            <div className="space-y-2 relative">
               <Label>Senha</Label>
               <Input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
                 minLength={6}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Confirmar Senha</Label>
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                minLength={6}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="show-pass"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="show-pass" className="text-sm font-normal cursor-pointer">
+                Visualizar senhas
+              </Label>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Cadastrando...' : 'Cadastrar'}

@@ -23,6 +23,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const [clientId, setClientId] = useState('')
   const [items, setItems] = useState<Partial<QuoteItem>[]>([])
   const [discount, setDiscount] = useState('0')
+  const [packagingCost, setPackagingCost] = useState('0')
+  const [shippingCost, setShippingCost] = useState('0')
   const [finalPrice, setFinalPrice] = useState('')
   const [status, setStatus] = useState<'Pendente' | 'Aprovado' | 'Recusado'>('Pendente')
 
@@ -34,6 +36,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
           setClientId(q.clientId)
           setItems(q.items)
           setDiscount(q.discount?.toString() || '0')
+          setPackagingCost(q.packagingCost?.toString() || '0')
+          setShippingCost(q.shippingCost?.toString() || '0')
           setFinalPrice(q.finalPrice.toString())
           setStatus(q.status)
         }
@@ -43,6 +47,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
           { pieceName: '', weight: 0, timeHours: 0, quantity: 1, filamentId: '', machineId: '' },
         ])
         setDiscount('0')
+        setPackagingCost('0')
+        setShippingCost('0')
         setFinalPrice('')
         setStatus('Pendente')
       }
@@ -53,13 +59,16 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
     return items.map((item, index) => {
       const filament = filaments.find((f) => f.id === item.filamentId)
       const machine = machines.find((m) => m.id === item.machineId)
-      const costPerKg = filament ? filament.costPerKg : settings.filamentCost
+      const costPerKg = filament ? filament.costPerKg : 150
       const machineDepRate = machine ? machine.depreciationRate : settings.machineCost
+      const powerWatts = machine ? machine.powerWatts : 0
       const weight = item.weight || 0
       const time = item.timeHours || 0
+
       const material = (weight / 1000) * costPerKg
       const machineCost = time * machineDepRate
-      const energy = time * settings.energyCost
+      const energy = time * (powerWatts / 1000) * settings.energyCost
+
       const total = material + machineCost + energy
       const suggestedPrice = total * (1 + settings.profitMargin / 100)
 
@@ -99,7 +108,11 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
 
     const client = clients.find((c) => c.id === clientId)
     const discountVal = parseFloat(discount) || 0
-    const finalPriceVal = parseFloat(finalPrice) || Math.max(0, totals.suggestedPrice - discountVal)
+    const packVal = parseFloat(packagingCost) || 0
+    const shipVal = parseFloat(shippingCost) || 0
+
+    const baseSubtotal = totals.suggestedPrice + packVal + shipVal
+    const finalPriceVal = parseFloat(finalPrice) || Math.max(0, baseSubtotal - discountVal)
 
     const quoteData: Omit<Quote, 'id'> = {
       clientId,
@@ -112,11 +125,14 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         total: totals.total,
       },
       suggestedPrice: totals.suggestedPrice,
+      packagingCost: packVal,
+      shippingCost: shipVal,
       discount: discountVal,
       finalPrice: finalPriceVal,
       status,
       date: new Date().toISOString(),
     }
+
     if (editId) {
       updateQuote(editId, quoteData)
       toast({ title: 'Orçamento Atualizado' })
@@ -129,13 +145,38 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
 
   const updateItem = (index: number, field: keyof QuoteItem, value: any) => {
     const newItems = [...items]
-    newItems[index] = { ...newItems[index], [field]: value }
+    const currentItem = newItems[index]
+
+    if (field === 'filamentId' || field === 'quantity' || field === 'weight') {
+      const filId = field === 'filamentId' ? value : currentItem.filamentId
+      const qty = field === 'quantity' ? value : currentItem.quantity || 1
+      const w = field === 'weight' ? value : currentItem.weight || 0
+
+      if (filId) {
+        const filament = filaments.find((f) => f.id === filId)
+        if (filament && filament.currentWeight < w * qty) {
+          alert(
+            `Atenção: Estoque insuficiente! Restam ${filament.currentWeight.toFixed(0)}g deste filamento.`,
+          )
+        }
+      }
+    }
+
+    newItems[index] = { ...currentItem, [field]: value }
     setItems(newItems)
+  }
+
+  const recalculateFinalPrice = () => {
+    const packVal = parseFloat(packagingCost) || 0
+    const shipVal = parseFloat(shippingCost) || 0
+    const d = parseFloat(discount) || 0
+    const base = totals.suggestedPrice + packVal + shipVal
+    setFinalPrice(Math.max(0, base - d).toFixed(2))
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editId ? 'Editar Orçamento' : 'Novo Orçamento'}</DialogTitle>
         </DialogHeader>
@@ -178,7 +219,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                   ])
                 }
               >
-                <Plus className="w-4 h-4 mr-1" /> Adicionar
+                <Plus className="w-4 h-4 mr-1" /> Adicionar Peça
               </Button>
             </div>
             {items.map((item, index) => (
@@ -189,12 +230,15 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                     variant="ghost"
                     size="icon"
                     className="absolute top-2 right-2 text-destructive"
-                    onClick={() => setItems(items.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      if (window.confirm('Excluir este item?'))
+                        setItems(items.filter((_, i) => i !== index))
+                    }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pr-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 pr-6">
                   <div className="space-y-2 lg:col-span-2">
                     <Label>Peça</Label>
                     <Input
@@ -225,7 +269,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       onChange={(e) => updateItem(index, 'weight', parseFloat(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2 lg:col-span-1">
+                  <div className="space-y-2 lg:col-span-2">
                     <Label>Tempo (h)</Label>
                     <Input
                       type="number"
@@ -236,7 +280,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       onChange={(e) => updateItem(index, 'timeHours', parseFloat(e.target.value))}
                     />
                   </div>
-                  <div className="space-y-2 lg:col-span-2">
+                  <div className="space-y-2 lg:col-span-3">
                     <Label>Filamento</Label>
                     <Select
                       required
@@ -249,7 +293,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       <SelectContent>
                         {filaments.map((f) => (
                           <SelectItem key={f.id} value={f.id}>
-                            {f.name} (R$ {f.costPerKg}/kg)
+                            {f.name} (R$ {f.costPerKg}/kg) - {f.currentWeight.toFixed(0)}g disp.
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -278,17 +322,41 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
               </div>
             ))}
           </div>
-          <div className="bg-muted p-4 rounded-lg space-y-2 text-sm border">
-            <div className="flex justify-between text-muted-foreground">
+
+          <div className="bg-muted p-4 rounded-lg space-y-4 text-sm border">
+            <div className="flex justify-between text-muted-foreground pb-2 border-b border-border/50">
               <span>Material: R$ {totals.material.toFixed(2)}</span>
               <span>Máquina: R$ {totals.machine.toFixed(2)}</span>
               <span>Energia: R$ {totals.energy.toFixed(2)}</span>
             </div>
-            <div className="pt-2 border-t flex justify-between font-bold items-center">
-              <span>Preço Sugerido (Subtotal):</span>
-              <span className="text-primary">R$ {totals.suggestedPrice.toFixed(2)}</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>Embalagem (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={packagingCost}
+                  onChange={(e) => {
+                    setPackagingCost(e.target.value)
+                  }}
+                  onBlur={recalculateFinalPrice}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Frete (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={shippingCost}
+                  onChange={(e) => {
+                    setShippingCost(e.target.value)
+                  }}
+                  onBlur={recalculateFinalPrice}
+                />
+              </div>
               <div className="space-y-2">
                 <Label>Desconto (R$)</Label>
                 <Input
@@ -297,26 +365,21 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                   min="0"
                   value={discount}
                   onChange={(e) => {
-                    const val = e.target.value
-                    setDiscount(val)
-                    const d = parseFloat(val) || 0
-                    setFinalPrice(Math.max(0, totals.suggestedPrice - d).toFixed(2))
+                    setDiscount(e.target.value)
                   }}
+                  onBlur={recalculateFinalPrice}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 bg-primary/5 p-2 rounded border border-primary/20">
                 <div className="flex items-center justify-between">
-                  <Label>Preço Final Cobrado</Label>
+                  <Label className="text-primary font-bold">Total Cobrado</Label>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="w-5 h-5 -mt-1 text-muted-foreground hover:text-foreground"
-                    title="Calcular com base no subtotal e desconto"
-                    onClick={() => {
-                      const d = parseFloat(discount) || 0
-                      setFinalPrice(Math.max(0, totals.suggestedPrice - d).toFixed(2))
-                    }}
+                    className="w-5 h-5 -mt-1 text-primary hover:bg-primary/20"
+                    title="Calcular automático"
+                    onClick={recalculateFinalPrice}
                   >
                     <Calculator className="w-4 h-4" />
                   </Button>
@@ -327,10 +390,17 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                   required
                   value={finalPrice}
                   onChange={(e) => setFinalPrice(e.target.value)}
+                  className="font-bold bg-white dark:bg-black"
                 />
               </div>
             </div>
+
+            <div className="pt-2 flex justify-between items-center text-xs text-muted-foreground">
+              <span>Peças Base: R$ {totals.suggestedPrice.toFixed(2)}</span>
+              <span>Margem de Lucro: {settings.profitMargin}%</span>
+            </div>
           </div>
+
           <Button type="submit" className="w-full">
             Salvar Orçamento
           </Button>

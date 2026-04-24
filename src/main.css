@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%; /* Soft gray */
+    --background: 210 20% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -15,7 +15,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 226 71% 67%; /* Indigo #6366f1 */
+    --primary: 226 71% 67%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -27,7 +27,7 @@
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 347 77% 50%; /* Rose #e11d48 */
+    --destructive: 347 77% 50%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
@@ -53,38 +53,42 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
+
     --primary: 226 71% 67%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 222.2 84% 4.9%;
+
+    --secondary: 223 47% 20%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 222.2 84% 4.9%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 222.2 84% 4.9%;
+
+    --muted: 223 47% 20%;
+    --muted-foreground: 215.4 16.3% 66.9%;
+
+    --accent: 223 47% 20%;
     --accent-foreground: 210 40% 98%;
+
     --destructive: 347 77% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 222.2 84% 4.9%;
-    --input: 222.2 84% 4.9%;
+
+    --border: 223 47% 20%;
+    --input: 223 47% 20%;
     --ring: 226 71% 67%;
-    --sidebar-background: 222.2 84% 4.9%;
+
+    --sidebar-background: 224 71% 4%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 226 71% 67%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222.2 84% 4.9%;
+    --sidebar-accent: 222 47% 11%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222.2 84% 4.9%;
+    --sidebar-border: 223 47% 20%;
     --sidebar-ring: 226 71% 67%;
-    --chart-1: 226 71% 67%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 347 77% 50%;
-    --chart-5: 209 100% 32%;
   }
 
   section[aria-label='Notifications alt+T'] {
@@ -111,5 +115,18 @@
 
   .animate-fade-in-up {
     animation: fade-in-up 0.4s ease-out;
+  }
+}
+
+@media print {
+  @page {
+    size: A5 landscape;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    width: 210mm;
+    height: 148mm;
   }
 }

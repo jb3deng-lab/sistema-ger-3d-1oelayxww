@@ -13,7 +13,26 @@ import {
   CardFooter,
 } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { Printer } from 'lucide-react'
+
+const Printer3D = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    className={className}
+  >
+    <rect x="3" y="17" width="18" height="4" rx="1" />
+    <path d="M6 17V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12" />
+    <path d="M6 9h12" />
+    <rect x="10" y="9" width="4" height="5" rx="1" />
+    <path d="M12 14v2" />
+    <path d="M8 17v-1h8v1" />
+  </svg>
+)
 
 export default function Register() {
   const { signUp } = useAuth()
@@ -61,7 +80,7 @@ export default function Register() {
       <Card className="w-full max-w-md border-none shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
-            <Printer className="w-8 h-8" />
+            <Printer3D className="w-8 h-8" />
           </div>
           <div>
             <CardTitle className="text-2xl">Criar Conta</CardTitle>

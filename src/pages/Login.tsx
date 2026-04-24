@@ -4,35 +4,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-
-const Printer3D = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    className={className}
-  >
-    <rect x="3" y="17" width="18" height="4" rx="1" />
-    <path d="M6 17V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12" />
-    <path d="M6 9h12" />
-    <rect x="10" y="9" width="4" height="5" rx="1" />
-    <path d="M12 14v2" />
-    <path d="M8 17v-1h8v1" />
-  </svg>
-)
+import { Box, Loader2 } from 'lucide-react'
 
 export default function Login() {
   const { signIn } = useAuth()
@@ -64,53 +37,69 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md border-none shadow-lg">
-        <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
-            <Printer3D className="w-8 h-8" />
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+      <div className="hidden md:flex flex-1 bg-muted items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
+        <img
+          src="https://img.usecurling.com/p/800/1000?q=3d%20printer&color=blue"
+          alt="Impressão 3D"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        />
+        <div className="relative z-20 p-12 text-center text-white max-w-lg backdrop-blur-sm bg-black/40 rounded-2xl border border-white/10 shadow-2xl">
+          <Box className="w-16 h-16 mx-auto mb-6 text-primary" />
+          <h1 className="text-4xl font-bold mb-4">GER-3D</h1>
+          <p className="text-lg text-white/90">
+            O sistema definitivo para gerenciar vendas, orçamentos e o estoque da sua produção 3D.
+          </p>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 pb-safe">
+        <div className="w-full max-w-md space-y-8 animate-fade-in-up">
+          <div className="text-center md:text-left">
+            <Box className="w-12 h-12 mx-auto md:mx-0 mb-4 text-primary md:hidden" />
+            <h2 className="text-3xl font-bold tracking-tight">Bem-vindo de volta</h2>
+            <p className="text-muted-foreground mt-2">Faça login para gerenciar sua produção</p>
           </div>
-          <div>
-            <CardTitle className="text-2xl">Sistema de Gestão 3D</CardTitle>
-            <CardDescription>Faça login para gerenciar sua produção</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label>E-mail</Label>
+              <Label htmlFor="email">E-mail</Label>
               <Input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
+                className="h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label>Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+              </div>
               <Input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
+                className="h-12"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-12 text-base font-medium" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t p-4 mt-4">
-          <p className="text-sm text-muted-foreground">
+          <div className="text-center text-sm text-muted-foreground mt-6">
             Não tem uma conta?{' '}
-            <Link to="/register" className="text-primary hover:underline font-medium">
+            <Link to="/register" className="font-semibold text-primary hover:underline">
               Cadastre-se
             </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

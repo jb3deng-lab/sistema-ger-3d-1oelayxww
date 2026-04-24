@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ger-3d-cache-v1'
-const ASSETS_TO_CACHE = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg']
+const CACHE_NAME = 'ger-3d-cache-v2'
+const ASSETS_TO_CACHE = ['/', '/index.html', '/manifest.json']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -11,20 +11,48 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName)
+            }
+          }),
+        )
+      })
+      .then(() => self.clients.claim()),
+  )
 })
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
 
+  const url = new URL(event.request.url)
+  // Ignorar requisições para a API do Supabase no cache
+  if (url.hostname.includes('supabase.co')) return
+
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request).then((response) => {
-        if (response) return response
-        if (event.request.mode === 'navigate') {
-          return caches.match('/')
-        }
-      })
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.ok && event.request.url.startsWith('http')) {
+            const responseToCache = networkResponse.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache)
+            })
+          }
+          return networkResponse
+        })
+        .catch(() => {
+          if (event.request.mode === 'navigate') {
+            return caches.match('/')
+          }
+        })
+
+      return cachedResponse || fetchPromise
     }),
   )
 })

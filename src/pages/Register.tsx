@@ -4,35 +4,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-
-const Printer3D = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    className={className}
-  >
-    <rect x="3" y="17" width="18" height="4" rx="1" />
-    <path d="M6 17V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12" />
-    <path d="M6 9h12" />
-    <rect x="10" y="9" width="4" height="5" rx="1" />
-    <path d="M12 14v2" />
-    <path d="M8 17v-1h8v1" />
-  </svg>
-)
+import { Box, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function Register() {
   const { signUp } = useAuth()
@@ -57,6 +30,7 @@ export default function Register() {
       })
     }
     setLoading(true)
+    // @ts-expect-error - mantendo a compatibilidade de uso anterior com name e address
     const { error } = await signUp(email, password, name, address)
 
     if (error) {
@@ -76,94 +50,118 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4 py-8">
-      <Card className="w-full max-w-md border-none shadow-lg">
-        <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
-            <Printer3D className="w-8 h-8" />
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+      <div className="hidden md:flex flex-1 bg-muted items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
+        <img
+          src="https://img.usecurling.com/p/800/1000?q=technology&color=blue"
+          alt="Tecnologia"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        />
+        <div className="relative z-20 p-12 text-center text-white max-w-lg backdrop-blur-sm bg-black/40 rounded-2xl border border-white/10 shadow-2xl">
+          <Box className="w-16 h-16 mx-auto mb-6 text-primary" />
+          <h1 className="text-4xl font-bold mb-4">Junte-se ao GER-3D</h1>
+          <p className="text-lg text-white/90">
+            Tenha o controle total da sua operação de impressão 3D centralizada em um só lugar.
+          </p>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 pb-safe overflow-y-auto">
+        <div className="w-full max-w-md space-y-8 animate-fade-in-up py-8">
+          <div className="text-center md:text-left">
+            <Box className="w-12 h-12 mx-auto md:mx-0 mb-4 text-primary md:hidden" />
+            <h2 className="text-3xl font-bold tracking-tight">Criar Conta</h2>
+            <p className="text-muted-foreground mt-2">Cadastre-se no Sistema de Gestão 3D</p>
           </div>
-          <div>
-            <CardTitle className="text-2xl">Criar Conta</CardTitle>
-            <CardDescription>Cadastre-se no Sistema de Gestão 3D</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label>Nome Completo</Label>
+              <Label htmlFor="name">Nome Completo</Label>
               <Input
+                id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Seu nome"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label>E-mail</Label>
+              <Label htmlFor="email">E-mail</Label>
               <Input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label>Endereço</Label>
+              <Label htmlFor="address">Endereço</Label>
               <Input
+                id="address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Seu endereço completo"
+                className="h-11"
               />
             </div>
-            <div className="space-y-2 relative">
-              <Label>Senha</Label>
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                minLength={6}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    minLength={6}
+                    className="h-11 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="h-11"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Confirmar Senha</Label>
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                minLength={6}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="show-pass"
-                checked={showPassword}
-                onChange={(e) => setShowPassword(e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="show-pass" className="text-sm font-normal cursor-pointer">
-                Visualizar senhas
-              </Label>
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-medium mt-2"
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
               {loading ? 'Cadastrando...' : 'Cadastrar'}
             </Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t p-4 mt-4">
-          <p className="text-sm text-muted-foreground">
+          <div className="text-center text-sm text-muted-foreground mt-6">
             Já tem uma conta?{' '}
-            <Link to="/login" className="text-primary hover:underline font-medium">
+            <Link to="/login" className="font-semibold text-primary hover:underline">
               Faça login
             </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

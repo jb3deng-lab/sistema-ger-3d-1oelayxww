@@ -350,17 +350,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addClient = async (c: Client) => {
     setClients((p) => [c, ...p])
-    await supabase
-      .from('clients')
-      .insert({
-        user_id: user!.id,
-        id: c.id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        document: c.document,
-        address: c.address,
-      })
+    await supabase.from('clients').insert({
+      user_id: user!.id,
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      document: c.document,
+      address: c.address,
+    })
   }
   const updateClient = async (id: string, d: Partial<Client>) => {
     setClients((p) => p.map((c) => (c.id === id ? { ...c, ...d } : c)))
@@ -526,15 +524,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addOrder = async (o: Order) => {
     setOrders((p) => [o, ...p])
-    await supabase
-      .from('orders')
-      .insert({
-        id: o.id,
-        user_id: user!.id,
-        quote_id: o.quoteId,
-        status: o.status,
-        start_date: o.startDate,
-      })
+    await supabase.from('orders').insert({
+      id: o.id,
+      user_id: user!.id,
+      quote_id: o.quoteId,
+      status: o.status,
+      start_date: o.startDate,
+    })
   }
   const updateOrderStatus = async (id: string, s: Order['status']) => {
     setOrders((p) => p.map((o) => (o.id === id ? { ...o, status: s } : o)))
@@ -542,16 +538,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
   const addTransaction = async (t: Transaction) => {
     setTransactions((p) => [t, ...p])
-    await supabase
-      .from('transactions')
-      .insert({
-        id: t.id,
-        user_id: user!.id,
-        description: t.description,
-        type: t.type,
-        amount: t.amount,
-        date: t.date,
-      })
+    await supabase.from('transactions').insert({
+      id: t.id,
+      user_id: user!.id,
+      description: t.description,
+      type: t.type,
+      amount: t.amount,
+      date: t.date,
+    })
   }
 
   const updateQuoteStatus = async (id: string, s: Quote['status']) => {

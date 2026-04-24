@@ -1,297 +1,259 @@
-import { useState } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Calculator,
-  Box,
-  DollarSign,
-  Settings,
-  Plus,
-  Menu,
-  Users,
-  Cuboid,
-  Disc,
-  UserCircle,
-} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
-import { useApp } from '@/store/AppContext'
-import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
-
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/quotes', label: 'Orçamentos', icon: Calculator },
-  { path: '/orders', label: 'Pedidos', icon: Box },
-  { path: '/inventory', label: 'Estoque', icon: Disc },
-  { path: '/financial', label: 'Financeiro', icon: DollarSign },
-  { path: '/clients', label: 'Clientes', icon: Users },
-  { path: '/machines', label: 'Impressoras 3D', icon: Cuboid },
-]
-
-import { ThemeToggle } from './ThemeToggle'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from '@/components/ui/sidebar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import {
+  LayoutDashboard,
+  Users,
+  Box,
+  Disc3,
+  FileText,
+  Settings,
+  LogOut,
+  User as UserIcon,
+  PlusCircle,
+  Package,
+  DollarSign,
+} from 'lucide-react'
 
 export default function Layout() {
+  const { user, signOut, updateProfile } = useAuth()
   const location = useLocation()
-  const { profile, updateProfile } = useApp()
-  const { signOut } = useAuth()
   const { toast } = useToast()
-
   const [profileOpen, setProfileOpen] = useState(false)
-  const [pData, setPData] = useState({ name: profile?.name || '', address: profile?.address || '' })
+  const [formData, setFormData] = useState({
+    name: user?.user_metadata?.name || '',
+    email: user?.email || '',
+    address: user?.user_metadata?.address || '',
+    password: '',
+    confirmPassword: '',
+  })
+  const [loading, setLoading] = useState(false)
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user && profileOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.user_metadata?.name || '',
+        email: user.email || '',
+        address: user.user_metadata?.address || '',
+        password: '',
+        confirmPassword: '',
+      }))
+    }
+  }, [user, profileOpen])
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(pData)
-    toast({ title: 'Perfil atualizado!' })
-    setProfileOpen(false)
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      toast({ title: 'Erro', description: 'As senhas não coincidem.', variant: 'destructive' })
+      return
+    }
+
+    setLoading(true)
+    const updates: any = {
+      name: formData.name,
+      address: formData.address,
+      email: formData.email,
+    }
+    if (formData.password) {
+      updates.password = formData.password
+    }
+
+    const { error } = await updateProfile(updates)
+
+    setLoading(false)
+    if (error) {
+      toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' })
+    } else {
+      toast({
+        title: 'Sucesso',
+        description:
+          'Perfil atualizado. Se você alterou o e-mail, precisará confirmá-lo através do link enviado.',
+      })
+      setProfileOpen(false)
+    }
   }
 
-  const handleLogout = async () => {
-    await signOut()
-  }
+  const navItems = [
+    { title: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { title: 'Orçamentos', path: '/quotes', icon: FileText },
+    { title: 'Pedidos', path: '/orders', icon: Package },
+    { title: 'Estoque', path: '/inventory', icon: Disc3 },
+    { title: 'Clientes', path: '/clients', icon: Users },
+    { title: 'Máquinas', path: '/machines', icon: Box },
+    { title: 'Financeiro', path: '/financial', icon: DollarSign },
+    { title: 'Configurações', path: '/settings', icon: Settings },
+  ]
 
   return (
-    <div className="flex min-h-screen w-full bg-background text-foreground" translate="no">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-card fixed inset-y-0 z-10">
-        <div className="h-16 flex items-center px-6 border-b border-border">
-          <div className="flex items-center gap-2 font-bold text-xl text-primary">
-            <Cuboid className="h-6 w-6" />
-            <span>3D Vendas</span>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader className="p-4 flex items-center justify-between">
+          <div className="font-bold text-lg text-primary flex items-center gap-2">
+            <Box className="w-5 h-5" /> Ger-3D
           </div>
-        </div>
-        <nav className="flex-1 overflow-y-auto py-4 flex flex-col gap-1 px-3">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
-            return (
-              <Link key={item.path} to={item.path}>
-                <span
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </span>
-              </Link>
-            )
-          })}
-        </nav>
-        <div className="p-4 border-t flex flex-col gap-2">
-          <Link to="/settings">
-            <span
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                location.pathname === '/settings'
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-            >
-              <Settings className="h-5 w-5" />
-              Configurações
-            </span>
-          </Link>
-
-          <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-            <DialogTrigger asChild>
-              <span className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors">
-                <UserCircle className="h-5 w-5" />
-                <div className="flex flex-col items-start leading-tight">
-                  <span className="truncate max-w-[140px]">{profile?.name || 'Usuário'}</span>
-                  <span className="text-[10px] opacity-70">Ver Perfil</span>
-                </div>
-              </span>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Meu Perfil</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSaveProfile} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input
-                    value={pData.name}
-                    onChange={(e) => setPData({ ...pData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Endereço</Label>
-                  <Input
-                    value={pData.address}
-                    onChange={(e) => setPData({ ...pData, address: e.target.value })}
-                  />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={handleLogout}
-                  >
-                    Sair da Conta
-                  </Button>
-                  <Button type="submit" className="flex-1">
-                    Salvar Dados
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </aside>
-
-      {/* Mobile Top Header */}
-      <header className="md:hidden fixed top-0 inset-x-0 h-14 bg-card border-b border-border flex items-center justify-between px-4 z-20">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="-ml-2">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <div className="h-14 flex items-center px-6 border-b border-border font-bold text-xl text-primary">
-              <Cuboid className="h-6 w-6 mr-2" /> 3D Vendas
-            </div>
-            <nav className="flex flex-col p-4 gap-2">
-              {[...navItems, { path: '/settings', label: 'Configurações', icon: Settings }].map(
-                (item) => (
-                  <Link key={item.path} to={item.path}>
-                    <span className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                    </span>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {navItems.map((item) => (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton asChild isActive={location.pathname === item.path}>
+                  <Link to={item.path}>
+                    <item.icon className="w-4 h-4 mr-2" />
+                    <span>{item.title}</span>
                   </Link>
-                ),
-              )}
-              <div className="border-t pt-2 mt-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-3 text-muted-foreground"
-                  onClick={() => setProfileOpen(true)}
-                >
-                  <UserCircle className="h-5 w-5" /> {profile?.name || 'Perfil'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-3 text-destructive"
-                  onClick={handleLogout}
-                >
-                  Sair
-                </Button>
-              </div>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <span className="font-bold text-lg text-primary">3D Vendas</span>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter className="p-4 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="-mr-2 text-primary">
-                <Plus className="h-5 w-5" />
+              <Button variant="ghost" className="w-full justify-start overflow-hidden">
+                <UserIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="truncate">
+                  {user?.user_metadata?.name || user?.email || 'Usuário'}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => setProfileOpen(true)} className="cursor-pointer">
+                <UserIcon className="w-4 h-4 mr-2" /> Meu Perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => signOut()}
+                className="text-destructive cursor-pointer"
+              >
+                <LogOut className="w-4 h-4 mr-2" /> Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+      </Sidebar>
+
+      <SidebarInset className="flex flex-col flex-1 w-full overflow-hidden">
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
+          <SidebarTrigger />
+          <div className="flex-1" />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <PlusCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Novo</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <Link to="/quotes">
-                <DropdownMenuItem>Novo Orçamento</DropdownMenuItem>
-              </Link>
-              <Link to="/inventory">
-                <DropdownMenuItem>Novo Filamento</DropdownMenuItem>
-              </Link>
-              <Link to="/clients">
-                <DropdownMenuItem>Novo Cliente</DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem asChild>
+                <Link to="/clients" className="cursor-pointer">
+                  Novo Cliente
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/quotes" className="cursor-pointer">
+                  Novo Orçamento
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 md:pl-64 pt-14 md:pt-0 pb-16 md:pb-0 min-h-screen bg-background">
-        {/* Desktop Top Bar */}
-        <div className="hidden md:flex h-16 border-b border-border bg-card items-center justify-between px-8 sticky top-0 z-10">
-          <h1 className="text-xl font-semibold text-foreground capitalize">
-            {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1)}
-          </h1>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="gap-2 rounded-full px-6">
-                  <Plus className="h-4 w-4" /> Novo
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <Link to="/quotes">
-                  <DropdownMenuItem>Novo Orçamento</DropdownMenuItem>
-                </Link>
-                <Link to="/inventory">
-                  <DropdownMenuItem>Novo Filamento</DropdownMenuItem>
-                </Link>
-                <Link to="/clients">
-                  <DropdownMenuItem>Novo Cliente</DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-8 animate-fade-in-up">
+          <ThemeToggle />
+        </header>
+        <main className="flex-1 overflow-auto p-4 md:p-6 bg-muted/20">
           <Outlet />
-        </div>
-      </main>
+        </main>
+      </SidebarInset>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 h-16 bg-card border-t border-border flex items-center justify-around px-2 z-20 pb-safe overflow-x-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = location.pathname === item.path
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="flex-1 flex flex-col items-center justify-center gap-1"
-            >
-              <Icon
-                className={cn(
-                  'h-5 w-5 transition-colors',
-                  isActive ? 'text-primary' : 'text-muted-foreground',
-                )}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Meu Perfil</DialogTitle>
+            <DialogDescription>Atualize suas informações pessoais e de acesso.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateProfile} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
               />
-              <span
-                className={cn(
-                  'text-[10px] font-medium',
-                  isActive ? 'text-primary' : 'text-muted-foreground',
-                )}
-              >
-                {item.label}
-              </span>
-            </Link>
-          )
-        })}
-      </nav>
-    </div>
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Endereço Completo</Label>
+              <Input
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+            </div>
+            <div className="pt-4 border-t space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground">Alterar Senha</h4>
+              <div className="space-y-2">
+                <Label>Nova Senha (deixe em branco para não alterar)</Label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                />
+              </div>
+              {formData.password && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label>Confirmar Nova Senha</Label>
+                  <Input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    required={!!formData.password}
+                  />
+                </div>
+              )}
+            </div>
+            <Button type="submit" className="w-full mt-4" disabled={loading}>
+              {loading ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </SidebarProvider>
   )
 }

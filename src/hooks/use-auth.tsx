@@ -13,6 +13,12 @@ interface AuthContextType {
   ) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
+  updateProfile: (updates: {
+    email?: string
+    password?: string
+    name?: string
+    address?: string
+  }) => Promise<{ error: any }>
   loading: boolean
 }
 
@@ -65,8 +71,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error }
   }
 
+  const updateProfile = async (updates: {
+    email?: string
+    password?: string
+    name?: string
+    address?: string
+  }) => {
+    const dataToUpdate: any = {}
+    if (updates.email) dataToUpdate.email = updates.email
+    if (updates.password) dataToUpdate.password = updates.password
+    if (updates.name || updates.address) {
+      dataToUpdate.data = {
+        name: updates.name || user?.user_metadata?.name,
+        address: updates.address || user?.user_metadata?.address,
+      }
+    }
+
+    const { error } = await supabase.auth.updateUser(dataToUpdate)
+
+    if (!error && user && (updates.name || updates.address)) {
+      await supabase
+        .from('profiles')
+        .update({
+          name: updates.name || user.user_metadata?.name,
+          address: updates.address || user.user_metadata?.address,
+        })
+        .eq('id', user.id)
+    }
+
+    return { error }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, signUp, signIn, signOut, loading }}>
+    <AuthContext.Provider
+      value={{ user, session, signUp, signIn, signOut, updateProfile, loading }}
+    >
       {children}
     </AuthContext.Provider>
   )

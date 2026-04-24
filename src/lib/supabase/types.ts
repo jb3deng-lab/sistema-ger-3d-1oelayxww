@@ -89,7 +89,9 @@ export type Database = {
           created_at: string
           depreciation_rate: number
           id: string
+          maintenance_items: Json
           name: string
+          power_watts: number
           purchase_value: number
           useful_life_hours: number
           user_id: string
@@ -98,7 +100,9 @@ export type Database = {
           created_at?: string
           depreciation_rate: number
           id: string
+          maintenance_items?: Json
           name: string
+          power_watts?: number
           purchase_value: number
           useful_life_hours: number
           user_id: string
@@ -107,7 +111,9 @@ export type Database = {
           created_at?: string
           depreciation_rate?: number
           id?: string
+          maintenance_items?: Json
           name?: string
+          power_watts?: number
           purchase_value?: number
           useful_life_hours?: number
           user_id?: string
@@ -148,6 +154,27 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      profiles: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          id: string
+          name?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       quote_items: {
         Row: {
@@ -228,6 +255,8 @@ export type Database = {
           discount: number
           final_price: number
           id: string
+          packaging_cost: number
+          shipping_cost: number
           status: string
           suggested_price: number
           total_energy: number
@@ -244,6 +273,8 @@ export type Database = {
           discount: number
           final_price: number
           id: string
+          packaging_cost?: number
+          shipping_cost?: number
           status: string
           suggested_price: number
           total_energy: number
@@ -260,6 +291,8 @@ export type Database = {
           discount?: number
           final_price?: number
           id?: string
+          packaging_cost?: number
+          shipping_cost?: number
           status?: string
           suggested_price?: number
           total_energy?: number
@@ -526,12 +559,19 @@ export const Constants = {
 //   useful_life_hours: numeric (not null)
 //   depreciation_rate: numeric (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+//   power_watts: numeric (not null, default: 0)
+//   maintenance_items: jsonb (not null, default: '[]'::jsonb)
 // Table: orders
 //   id: text (not null)
 //   user_id: uuid (not null)
 //   quote_id: text (not null)
 //   status: text (not null)
 //   start_date: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: profiles
+//   id: uuid (not null)
+//   name: text (not null, default: ''::text)
+//   address: text (not null, default: ''::text)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: quote_items
 //   id: text (not null)
@@ -562,6 +602,8 @@ export const Constants = {
 //   status: text (not null)
 //   date: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+//   packaging_cost: numeric (not null, default: 0)
+//   shipping_cost: numeric (not null, default: 0)
 // Table: settings
 //   user_id: uuid (not null)
 //   filament_cost: numeric (not null, default: 150)
@@ -597,6 +639,9 @@ export const Constants = {
 //   PRIMARY KEY orders_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY orders_quote_id_fkey: FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
 //   FOREIGN KEY orders_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: profiles
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
 // Table: quote_items
 //   FOREIGN KEY quote_items_filament_id_fkey: FOREIGN KEY (filament_id) REFERENCES filaments(id) ON DELETE CASCADE
 //   FOREIGN KEY quote_items_machine_id_fkey: FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE CASCADE
@@ -630,6 +675,10 @@ export const Constants = {
 //   Policy "auth_orders" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (user_id = auth.uid())
 //     WITH CHECK: (user_id = auth.uid())
+// Table: profiles
+//   Policy "auth_profiles" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (id = auth.uid())
+//     WITH CHECK: (id = auth.uid())
 // Table: quote_items
 //   Policy "auth_quote_items" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -646,3 +695,22 @@ export const Constants = {
 //   Policy "auth_transactions" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (user_id = auth.uid())
 //     WITH CHECK: (user_id = auth.uid())
+
+// --- DATABASE FUNCTIONS ---
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     INSERT INTO public.profiles (id, name, address)
+//     VALUES (
+//       NEW.id,
+//       COALESCE(NEW.raw_user_meta_data->>'name', ''),
+//       COALESCE(NEW.raw_user_meta_data->>'address', '')
+//     );
+//     RETURN NEW;
+//   END;
+//   $function$
+//

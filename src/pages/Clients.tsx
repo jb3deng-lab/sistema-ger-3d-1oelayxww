@@ -126,54 +126,100 @@ export default function Clients() {
       </Dialog>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead>Nome</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Documento</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clients.map((client) => (
-              <TableRow key={client.id}>
-                <TableCell className="font-medium">{client.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {client.email}
-                  <br />
-                  {client.phone}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{client.document}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpen(client)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => {
-                        const { quotes } = useApp.getState ? useApp.getState() : { quotes: [] } // quick workaround since quotes might not be in scope here
-                        // wait, quotes is not imported here. I should get quotes from useApp.
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>{' '}
-                  </div>
-                </TableCell>
+        {/* Visualização Desktop */}
+        <div className="hidden md:block overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead>Nome</TableHead>
+                <TableHead>Contato</TableHead>
+                <TableHead>Documento</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ))}
-            {clients.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                  Nenhum cliente cadastrado.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {clients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {client.email}
+                    <br />
+                    {client.phone}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{client.document}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpen(client)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(client.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {clients.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    Nenhum cliente cadastrado.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Visualização Mobile Otimizada */}
+        <div className="md:hidden flex flex-col gap-4 p-4">
+          {clients.map((client) => (
+            <div
+              key={client.id}
+              className="border rounded-lg p-4 space-y-3 bg-background shadow-sm"
+            >
+              <div className="flex justify-between items-start">
+                <span className="font-medium text-foreground">{client.name}</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleOpen(client)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => handleDelete(client.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground flex flex-col">
+                {client.email && <span>{client.email}</span>}
+                {client.phone && <span>{client.phone}</span>}
+              </div>
+              {client.document && (
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">Doc:</span> {client.document}
+                </div>
+              )}
+            </div>
+          ))}
+          {clients.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground border rounded-lg">
+              Nenhum cliente cadastrado.
+            </div>
+          )}
+        </div>
       </Card>
     </div>
   )

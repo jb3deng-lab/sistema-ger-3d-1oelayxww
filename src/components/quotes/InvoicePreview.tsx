@@ -69,27 +69,38 @@ export function InvoicePreview({
         <DialogTitle className="sr-only">Visualização de Orçamento</DialogTitle>
         <style>{`
           @media print {
-            @page { size: A4 portrait; margin: 15mm; }
-            body > * { display: none !important; }
-            body > [data-radix-portal] { display: block !important; }
-            [data-radix-portal] > .fixed.inset-0 { display: none !important; }
+            @page { size: A4 portrait; margin: 10mm; }
             
-            [role="dialog"] {
-              position: relative !important;
+            body * {
+              visibility: hidden;
+            }
+            
+            #printable-invoice, #printable-invoice * {
+              visibility: visible;
+            }
+            
+            #printable-invoice {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+
+            body, html, [data-radix-portal], [role="dialog"], [data-state="open"] {
+              position: static !important;
+              overflow: visible !important;
               transform: none !important;
-              left: auto !important;
-              top: auto !important;
-              width: 100% !important;
-              max-width: 100% !important;
               height: auto !important;
               max-height: none !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border: none !important;
-              box-shadow: none !important;
-              background: white !important;
             }
+            
+            .fixed.inset-0 {
+              display: none !important;
+            }
+
             .print\\:hidden { display: none !important; }
+            
+            tr, .prevent-break { page-break-inside: avoid; break-inside: avoid; }
           }
         `}</style>
 
@@ -219,11 +230,11 @@ export function InvoicePreview({
           </div>
 
           {(quote as any).showComments && (quote as any).comments ? (
-            <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+            <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-100 prevent-break print:bg-transparent print:border-none print:p-0">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
                 Observações
               </h3>
-              <p className="text-sm text-slate-700 whitespace-pre-wrap">
+              <p className="text-sm text-slate-800 whitespace-pre-wrap">
                 {(quote as any).comments}
               </p>
             </div>

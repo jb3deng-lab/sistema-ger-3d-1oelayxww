@@ -1,6 +1,6 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Printer } from 'lucide-react'
+import { Printer, Mail } from 'lucide-react'
 import { useApp, Quote } from '@/store/AppContext'
 import { getWhatsAppLink } from '@/lib/utils'
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon'
@@ -46,16 +46,46 @@ export function InvoicePreview({
     window.open(link, '_blank')
   }
 
+  const handleEmailShare = () => {
+    const companyName = settings?.companyName || 'nossa loja'
+    const subject = `Orçamento/Pedido #${quote.id.slice(-6)} - ${companyName}`
+    const body = `Olá ${client.name},\n\nSegue o detalhamento do seu pedido #${quote.id.slice(-6)} na ${companyName}.\n\nTotal: R$ ${quote.finalPrice.toFixed(2)}\n\nObrigado pela preferência!`
+    const mailto = `mailto:${client.email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.open(mailto, '_blank')
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-white text-black print:m-0 print:p-0 print:border-none print:shadow-none print:max-w-full print:w-full sm:max-h-[90vh] overflow-y-auto print:overflow-visible">
-        <div className="flex justify-end gap-2 print:hidden mb-4 border-b pb-4">
+      <DialogContent className="max-w-4xl bg-white text-black sm:max-h-[90vh] overflow-y-auto print:p-0 print:m-0 print:overflow-visible print:border-none print:shadow-none print:bg-white print:text-black">
+        <style>{`
+          @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body * { visibility: hidden; }
+            #printable-invoice, #printable-invoice * { visibility: visible; }
+            #printable-invoice {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              margin: 0;
+              padding: 0;
+            }
+          }
+        `}</style>
+        <div className="flex flex-wrap justify-end gap-2 print:hidden mb-4 border-b pb-4">
           <Button
             onClick={handleWhatsAppShare}
             variant="outline"
             className="gap-2 text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 border-[#25D366]/20"
           >
-            <WhatsAppIcon className="w-4 h-4" /> Compartilhar
+            <WhatsAppIcon className="w-4 h-4" /> WhatsApp
+          </Button>
+          <Button
+            onClick={handleEmailShare}
+            variant="outline"
+            className="gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+          >
+            <Mail className="w-4 h-4" /> E-mail
           </Button>
           <Button
             onClick={() => window.print()}
@@ -64,8 +94,8 @@ export function InvoicePreview({
             <Printer className="w-4 h-4" /> Imprimir Nota / PDF
           </Button>
         </div>
-        <div className="p-2 sm:p-8 space-y-8 print:p-0">
-          <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6">
+        <div id="printable-invoice" className="p-2 sm:p-8 space-y-8 print:p-0 print:space-y-6">
+          <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 print:pb-4">
             <div className="space-y-1">
               <h1 className="text-2xl font-bold uppercase tracking-wider text-slate-800">
                 {settings.companyName || 'Empresa Padrão'}
@@ -143,21 +173,16 @@ export function InvoicePreview({
           <div className="flex justify-end pt-4">
             <div className="w-full sm:w-1/2 space-y-2">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Subtotal Itens:</span>
-                <span>R$ {quote.suggestedPrice.toFixed(2)}</span>
+                <span>Subtotal:</span>
+                <span>
+                  R${' '}
+                  {(
+                    quote.suggestedPrice +
+                    (quote.packagingCost || 0) +
+                    (quote.shippingCost || 0)
+                  ).toFixed(2)}
+                </span>
               </div>
-              {!!quote.packagingCost && quote.packagingCost > 0 && (
-                <div className="flex justify-between text-sm text-slate-600">
-                  <span>Embalagem:</span>
-                  <span>R$ {quote.packagingCost.toFixed(2)}</span>
-                </div>
-              )}
-              {!!quote.shippingCost && quote.shippingCost > 0 && (
-                <div className="flex justify-between text-sm text-slate-600">
-                  <span>Frete / Transporte:</span>
-                  <span>R$ {quote.shippingCost.toFixed(2)}</span>
-                </div>
-              )}
               {!!quote.discount && quote.discount > 0 && (
                 <div className="flex justify-between text-sm text-slate-600 text-red-600">
                   <span>Desconto:</span>
@@ -171,7 +196,18 @@ export function InvoicePreview({
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t text-center text-xs text-slate-400">
+          {(quote as any).showComments && (quote as any).comments ? (
+            <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-100 print:bg-transparent print:border-none print:p-0">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Observações
+              </h3>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                {(quote as any).comments}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="mt-12 pt-8 border-t text-center text-xs text-slate-400 print:mt-8 print:pt-4">
             <p>
               Este documento é uma representação visual de orçamento e não possui valor fiscal como
               Nota Fiscal Eletrônica (NF-e) a menos que emitido pelo sistema da SEFAZ.

@@ -37,7 +37,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+    <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
       <div className="hidden md:flex flex-1 bg-muted items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/20 mix-blend-multiply z-10" />
         <img

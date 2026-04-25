@@ -13,6 +13,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Calculator, Plus, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type QuoteFormProps = { open: boolean; onOpenChange: (o: boolean) => void; editId: string | null }
 
@@ -27,6 +29,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const [shippingCost, setShippingCost] = useState('0')
   const [finalPrice, setFinalPrice] = useState('')
   const [status, setStatus] = useState<'Pendente' | 'Aprovado' | 'Recusado'>('Pendente')
+  const [comments, setComments] = useState('')
+  const [showComments, setShowComments] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -40,6 +44,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
           setShippingCost(q.shippingCost?.toString() || '0')
           setFinalPrice(q.finalPrice.toString())
           setStatus(q.status)
+          setComments((q as any).comments || '')
+          setShowComments((q as any).showComments || false)
         }
       } else {
         setClientId('')
@@ -51,6 +57,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         setShippingCost('0')
         setFinalPrice('')
         setStatus('Pendente')
+        setComments('')
+        setShowComments(false)
       }
     }
   }, [open, editId, quotes])
@@ -114,7 +122,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
     const baseSubtotal = totals.suggestedPrice + packVal + shipVal
     const finalPriceVal = parseFloat(finalPrice) || Math.max(0, baseSubtotal - discountVal)
 
-    const quoteData: Omit<Quote, 'id'> = {
+    const quoteData: any = {
       clientId,
       clientName: client ? client.name : '',
       items: calculatedItems,
@@ -131,6 +139,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
       finalPrice: finalPriceVal,
       status,
       date: new Date().toISOString(),
+      comments,
+      showComments,
     }
 
     if (editId) {
@@ -398,6 +408,29 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
             <div className="pt-2 flex justify-between items-center text-xs text-muted-foreground">
               <span>Peças Base: R$ {totals.suggestedPrice.toFixed(2)}</span>
               <span>Margem de Lucro: {settings.profitMargin}%</span>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <Label>Comentários / Observações</Label>
+                <div className="flex items-center space-x-2 bg-background/50 px-2 py-1 rounded border">
+                  <Checkbox
+                    id="showComments"
+                    checked={showComments}
+                    onCheckedChange={(checked) => setShowComments(!!checked)}
+                  />
+                  <Label htmlFor="showComments" className="font-normal text-xs cursor-pointer">
+                    Mostrar na Nota
+                  </Label>
+                </div>
+              </div>
+              <Textarea
+                placeholder="Observações do orçamento (opcional)..."
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                className="resize-none bg-background"
+                rows={3}
+              />
             </div>
           </div>
 

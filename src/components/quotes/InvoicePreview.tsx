@@ -1,6 +1,6 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Printer, Mail } from 'lucide-react'
+import { Printer, Mail, Download } from 'lucide-react'
 import { useApp, Quote } from '@/store/AppContext'
 import { getWhatsAppLink } from '@/lib/utils'
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon'
@@ -54,24 +54,45 @@ export function InvoicePreview({
     window.open(mailto, '_blank')
   }
 
+  const handleDownloadPDF = () => {
+    toast({
+      title: 'Dica para PDF',
+      description: 'Na tela de impressão, selecione "Salvar como PDF" como destino.',
+      duration: 5000,
+    })
+    setTimeout(() => window.print(), 500)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-white text-black sm:max-h-[90vh] overflow-y-auto print:p-0 print:m-0 print:overflow-visible print:border-none print:shadow-none print:bg-white print:text-black">
+      <DialogContent className="max-w-4xl bg-white text-black sm:max-h-[90vh] overflow-y-auto print:p-0 print:m-0 print:max-w-none print:w-full print:overflow-visible print:border-none print:shadow-none print:bg-white print:text-black">
+        <DialogTitle className="sr-only">Visualização de Orçamento</DialogTitle>
         <style>{`
           @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            body * { visibility: hidden; }
-            #printable-invoice, #printable-invoice * { visibility: visible; }
-            #printable-invoice {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-              margin: 0;
-              padding: 0;
+            @page { size: A4 portrait; margin: 15mm; }
+            body > * { display: none !important; }
+            body > [data-radix-portal] { display: block !important; }
+            [data-radix-portal] > .fixed.inset-0 { display: none !important; }
+            
+            [role="dialog"] {
+              position: relative !important;
+              transform: none !important;
+              left: auto !important;
+              top: auto !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              height: auto !important;
+              max-height: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              background: white !important;
             }
+            .print\\:hidden { display: none !important; }
           }
         `}</style>
+
         <div className="flex flex-wrap justify-end gap-2 print:hidden mb-4 border-b pb-4">
           <Button
             onClick={handleWhatsAppShare}
@@ -88,12 +109,20 @@ export function InvoicePreview({
             <Mail className="w-4 h-4" /> E-mail
           </Button>
           <Button
-            onClick={() => window.print()}
-            className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+            onClick={handleDownloadPDF}
+            variant="outline"
+            className="gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
           >
-            <Printer className="w-4 h-4" /> Imprimir Nota / PDF
+            <Download className="w-4 h-4" /> Baixar PDF
+          </Button>
+          <Button
+            onClick={() => window.print()}
+            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            <Printer className="w-4 h-4" /> Imprimir
           </Button>
         </div>
+
         <div id="printable-invoice" className="p-2 sm:p-8 space-y-8 print:p-0 print:space-y-6">
           <div className="flex justify-between items-start border-b-2 border-slate-200 pb-6 print:pb-4">
             <div className="space-y-1">
@@ -173,15 +202,8 @@ export function InvoicePreview({
           <div className="flex justify-end pt-4">
             <div className="w-full sm:w-1/2 space-y-2">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Subtotal:</span>
-                <span>
-                  R${' '}
-                  {(
-                    quote.suggestedPrice +
-                    (quote.packagingCost || 0) +
-                    (quote.shippingCost || 0)
-                  ).toFixed(2)}
-                </span>
+                <span>Subtotal (Itens + Adicionais):</span>
+                <span>R$ {(quote.finalPrice + (quote.discount || 0)).toFixed(2)}</span>
               </div>
               {!!quote.discount && quote.discount > 0 && (
                 <div className="flex justify-between text-sm text-slate-600 text-red-600">

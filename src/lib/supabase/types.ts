@@ -250,6 +250,7 @@ export type Database = {
         Row: {
           client_id: string
           client_name: string
+          comments: string
           created_at: string
           date: string
           discount: number
@@ -257,6 +258,7 @@ export type Database = {
           id: string
           packaging_cost: number
           shipping_cost: number
+          show_comments: boolean
           status: string
           suggested_price: number
           total_energy: number
@@ -268,6 +270,7 @@ export type Database = {
         Insert: {
           client_id: string
           client_name: string
+          comments?: string
           created_at?: string
           date: string
           discount: number
@@ -275,6 +278,7 @@ export type Database = {
           id: string
           packaging_cost?: number
           shipping_cost?: number
+          show_comments?: boolean
           status: string
           suggested_price: number
           total_energy: number
@@ -286,6 +290,7 @@ export type Database = {
         Update: {
           client_id?: string
           client_name?: string
+          comments?: string
           created_at?: string
           date?: string
           discount?: number
@@ -293,6 +298,7 @@ export type Database = {
           id?: string
           packaging_cost?: number
           shipping_cost?: number
+          show_comments?: boolean
           status?: string
           suggested_price?: number
           total_energy?: number
@@ -604,6 +610,8 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   packaging_cost: numeric (not null, default: 0)
 //   shipping_cost: numeric (not null, default: 0)
+//   comments: text (not null, default: ''::text)
+//   show_comments: boolean (not null, default: false)
 // Table: settings
 //   user_id: uuid (not null)
 //   filament_cost: numeric (not null, default: 150)

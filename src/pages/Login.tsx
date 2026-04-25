@@ -1,18 +1,27 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { Box, Loader2 } from 'lucide-react'
+import { Box, Loader2, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+
+  const { signIn, user } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +35,6 @@ export default function Login() {
         title: 'Erro ao fazer login',
         description: error.message || 'Verifique suas credenciais e tente novamente.',
       })
-    } finally {
       setIsLoading(false)
     }
   }
@@ -35,7 +43,7 @@ export default function Login() {
     <div className="min-h-screen grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900" />
-        <div className="absolute inset-0 bg-[url('https://img.usecurling.com/p/800/1200?q=3d%20printing&color=blue&dpr=2')] bg-cover bg-center mix-blend-overlay opacity-30" />
+        <div className="absolute inset-0 bg-[url('https://img.usecurling.com/p/800/1200?q=3d%20printing&color=blue&dpr=2')] bg-cover bg-center mix-blend-overlay opacity-40" />
         <div className="relative z-20 flex items-center text-2xl font-bold tracking-tight">
           <Box className="mr-2 h-8 w-8 text-primary" />
           GER-3D
@@ -82,15 +90,25 @@ export default function Login() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-background h-11"
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-background h-11 pr-10"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

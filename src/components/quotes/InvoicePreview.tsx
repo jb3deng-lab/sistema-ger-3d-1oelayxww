@@ -54,57 +54,97 @@ export function InvoicePreview({
     window.open(mailto, '_blank')
   }
 
-  const handleDownloadPDF = () => {
-    const originalTitle = document.title
-    document.title = `Orcamento_${quote.id.slice(-6)}.pdf`
-    window.print()
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById('printable-invoice')
+    if (!element) return
+
+    const btn = document.getElementById('btn-download-pdf')
+    const originalText = btn?.innerHTML
+    if (btn) btn.innerHTML = '<span class="animate-pulse">Gerando...</span>'
+
+    try {
+      await new Promise((resolve, reject) => {
+        if ((window as any).html2pdf) return resolve(true)
+        const script = document.createElement('script')
+        script.src =
+          'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+
+      const opt = {
+        margin: 10,
+        filename: `Orcamento_${quote.id.slice(-6)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      }
+
+      await (window as any).html2pdf().set(opt).from(element).save()
+      toast({ title: 'Sucesso', description: 'Download do PDF iniciado.' })
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Falha ao gerar o PDF. Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      if (btn && originalText) btn.innerHTML = originalText
+    }
+  }
+
+  const handlePrint = () => {
+    const element = document.getElementById('printable-invoice')
+    if (!element) return
+
+    const iframe = document.createElement('iframe')
+    iframe.style.display = 'none'
+    document.body.appendChild(iframe)
+
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((style) => style.outerHTML)
+      .join('\n')
+
+    const iframeDoc = iframe.contentWindow?.document
+    if (!iframeDoc) return
+
+    iframeDoc.open()
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Orcamento_${quote.id.slice(-6)}</title>
+          ${styles}
+          <style>
+            @media print {
+              @page { size: A4 portrait; margin: 10mm; }
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; margin: 0; }
+              .print\\:hidden { display: none !important; }
+              #printable-invoice { max-width: 100%; page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body class="bg-white text-black p-8">
+          ${element.outerHTML}
+        </body>
+      </html>
+    `)
+    iframeDoc.close()
+
     setTimeout(() => {
-      document.title = originalTitle
-    }, 1000)
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 1000)
+    }, 500)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-white text-black sm:max-h-[90vh] overflow-y-auto print:p-0 print:m-0 print:max-w-none print:w-full print:overflow-visible print:border-none print:shadow-none print:bg-white print:text-black">
+      <DialogContent className="max-w-4xl bg-white text-black sm:max-h-[90vh] overflow-y-auto">
         <DialogTitle className="sr-only">Visualização de Orçamento</DialogTitle>
-        <style>{`
-          @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            
-            body > :not([data-radix-portal]) {
-              display: none !important;
-            }
-            
-            [data-radix-portal], [role="dialog"] {
-              position: static !important;
-              display: block !important;
-              width: 100% !important;
-              max-width: 100% !important;
-              height: auto !important;
-              max-height: none !important;
-              overflow: visible !important;
-              transform: none !important;
-              border: none !important;
-              box-shadow: none !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              background: white !important;
-            }
-            
-            .fixed.inset-0 {
-              display: none !important;
-            }
-
-            #printable-invoice {
-              width: 100%;
-              page-break-after: auto;
-            }
-
-            .print\\:hidden { display: none !important; }
-            
-            tr, .prevent-break { page-break-inside: avoid; break-inside: avoid; }
-          }
-        `}</style>
 
         <div className="flex flex-wrap justify-end gap-2 print:hidden mb-4 border-b pb-4">
           <Button
@@ -122,6 +162,7 @@ export function InvoicePreview({
             <Mail className="w-4 h-4" /> E-mail
           </Button>
           <Button
+            id="btn-download-pdf"
             onClick={handleDownloadPDF}
             variant="outline"
             className="gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
@@ -129,7 +170,7 @@ export function InvoicePreview({
             <Download className="w-4 h-4" /> Baixar PDF
           </Button>
           <Button
-            onClick={() => window.print()}
+            onClick={handlePrint}
             className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
           >
             <Printer className="w-4 h-4" /> Imprimir

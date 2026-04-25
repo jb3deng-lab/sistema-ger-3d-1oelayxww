@@ -198,6 +198,7 @@ export default function Inventory() {
                   <Input
                     type="date"
                     required
+                    className="dark:[color-scheme:dark]"
                     value={formData.purchaseDate}
                     onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
                   />

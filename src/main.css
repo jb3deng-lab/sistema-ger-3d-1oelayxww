@@ -129,16 +129,3 @@
     animation: fade-in-up 0.4s ease-out;
   }
 }
-
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 10mm;
-  }
-
-  html,
-  body {
-    width: auto;
-    height: auto;
-  }
-}

@@ -23,6 +23,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarInset,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import {
   DropdownMenu,
@@ -45,6 +46,69 @@ import {
   Package,
   DollarSign,
 } from 'lucide-react'
+
+function SidebarNavContent({ navItems, location }: any) {
+  const { setOpenMobile } = useSidebar()
+  return (
+    <SidebarContent>
+      <SidebarMenu>
+        {navItems.map((item: any) => (
+          <SidebarMenuItem key={item.path}>
+            <SidebarMenuButton asChild isActive={location.pathname === item.path}>
+              <Link to={item.path} onClick={() => setOpenMobile(false)}>
+                <item.icon className="w-4 h-4 mr-2" />
+                <span>{item.title}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </SidebarContent>
+  )
+}
+
+function SidebarNavFooter({ location, user, setProfileOpen, signOut }: any) {
+  const { setOpenMobile } = useSidebar()
+  return (
+    <SidebarFooter className="p-4 border-t space-y-2">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild isActive={location.pathname === '/settings'}>
+            <Link to="/settings" onClick={() => setOpenMobile(false)}>
+              <Settings className="w-4 h-4 mr-2" />
+              <span>Configurações</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="w-full justify-start overflow-hidden">
+            <UserIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate">
+              {user?.user_metadata?.name || user?.email || 'Usuário'}
+            </span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem
+            onClick={() => {
+              setProfileOpen(true)
+              setOpenMobile(false)
+            }}
+            className="cursor-pointer"
+          >
+            <UserIcon className="w-4 h-4 mr-2" /> Meu Perfil
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => signOut()} className="text-destructive cursor-pointer">
+            <LogOut className="w-4 h-4 mr-2" /> Sair
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarFooter>
+  )
+}
 
 export default function Layout() {
   const { user, signOut, updateProfile } = useAuth()
@@ -123,54 +187,13 @@ export default function Layout() {
             <Box className="w-5 h-5" /> Gestão 3D
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.path}>
-                <SidebarMenuButton asChild isActive={location.pathname === item.path}>
-                  <Link to={item.path}>
-                    <item.icon className="w-4 h-4 mr-2" />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="p-4 border-t space-y-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname === '/settings'}>
-                <Link to="/settings">
-                  <Settings className="w-4 h-4 mr-2" />
-                  <span>Configurações</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start overflow-hidden">
-                <UserIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">
-                  {user?.user_metadata?.name || user?.email || 'Usuário'}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => setProfileOpen(true)} className="cursor-pointer">
-                <UserIcon className="w-4 h-4 mr-2" /> Meu Perfil
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => signOut()}
-                className="text-destructive cursor-pointer"
-              >
-                <LogOut className="w-4 h-4 mr-2" /> Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarFooter>
+        <SidebarNavContent navItems={navItems} location={location} />
+        <SidebarNavFooter
+          location={location}
+          user={user}
+          setProfileOpen={setProfileOpen}
+          signOut={signOut}
+        />
       </Sidebar>
 
       <SidebarInset className="flex flex-col flex-1 w-full overflow-hidden">

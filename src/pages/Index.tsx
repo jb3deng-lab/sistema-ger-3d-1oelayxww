@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Link } from 'react-router-dom'
-import { Plus, TrendingUp, PackageSearch, Activity, AlertTriangle } from 'lucide-react'
+import { Plus, Minus, TrendingUp, PackageSearch, Activity, AlertTriangle } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts'
 import { DateRangePicker } from '@/components/DateRangePicker'
@@ -59,6 +59,8 @@ export default function Index() {
     if (result.length === 0) return [{ name: 'Período', Entradas: 0, Saídas: 0 }]
     return result
   }, [filteredTransactions])
+
+  const [showProductionQueue, setShowProductionQueue] = useState(false)
 
   const chartConfig = {
     Entradas: { label: 'Entradas', color: 'hsl(160, 84%, 39%)' },
@@ -189,45 +191,55 @@ export default function Index() {
         </Card>
 
         <Card className="rounded-xl border-none shadow-sm bg-card">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>Fila de Produção</CardTitle>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setShowProductionQueue(!showProductionQueue)}
+            >
+              {showProductionQueue ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {activeOrders.slice(0, 4).map((order) => {
-              const quote = quotes.find((q) => q.id === order.quoteId)
-              if (!quote) return null
-              return (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div className="overflow-hidden">
-                    <p className="font-medium text-sm text-foreground truncate">
-                      {quote.clientName}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {quote.items.length} itens
-                    </p>
-                  </div>
-                  <Badge
-                    variant={order.status === 'Em produção' ? 'default' : 'secondary'}
-                    className={
-                      order.status === 'Em produção'
-                        ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                        : ''
-                    }
+          {showProductionQueue && (
+            <CardContent className="space-y-4">
+              {activeOrders.slice(0, 4).map((order) => {
+                const quote = quotes.find((q) => q.id === order.quoteId)
+                if (!quote) return null
+                return (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                   >
-                    {order.status}
-                  </Badge>
+                    <div className="overflow-hidden">
+                      <p className="font-medium text-sm text-foreground truncate">
+                        {quote.clientName}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {quote.items.length} itens
+                      </p>
+                    </div>
+                    <Badge
+                      variant={order.status === 'Em produção' ? 'default' : 'secondary'}
+                      className={
+                        order.status === 'Em produção'
+                          ? 'bg-primary/20 text-primary hover:bg-primary/30'
+                          : ''
+                      }
+                    >
+                      {order.status}
+                    </Badge>
+                  </div>
+                )
+              })}
+              {activeOrders.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Nenhum pedido na fila
                 </div>
-              )
-            })}
-            {activeOrders.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                Nenhum pedido na fila
-              </div>
-            )}
-          </CardContent>
+              )}
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>

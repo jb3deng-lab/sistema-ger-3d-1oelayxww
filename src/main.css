@@ -6,6 +6,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 210 20% 98%;
     --foreground: 222.2 84% 4.9%;
 
@@ -53,6 +54,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 224 71% 4%;
     --foreground: 210 40% 98%;
 
@@ -94,6 +96,16 @@
   section[aria-label='Notifications alt+T'] {
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  [data-radix-toast-viewport] {
+    top: 1rem !important;
+    bottom: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    flex-direction: column !important;
+    align-items: center !important;
   }
 }
 

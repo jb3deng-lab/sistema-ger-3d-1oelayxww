@@ -55,12 +55,12 @@ export function InvoicePreview({
   }
 
   const handleDownloadPDF = () => {
-    toast({
-      title: 'Dica para PDF',
-      description: 'Na tela de impressão, selecione "Salvar como PDF" como destino.',
-      duration: 5000,
-    })
-    setTimeout(() => window.print(), 500)
+    const originalTitle = document.title
+    document.title = `Orcamento_${quote.id.slice(-6)}.pdf`
+    window.print()
+    setTimeout(() => {
+      document.title = originalTitle
+    }, 1000)
   }
 
   return (
@@ -71,31 +71,33 @@ export function InvoicePreview({
           @media print {
             @page { size: A4 portrait; margin: 10mm; }
             
-            body * {
-              visibility: hidden;
+            body > :not([data-radix-portal]) {
+              display: none !important;
             }
             
-            #printable-invoice, #printable-invoice * {
-              visibility: visible;
-            }
-            
-            #printable-invoice {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-
-            body, html, [data-radix-portal], [role="dialog"], [data-state="open"] {
+            [data-radix-portal], [role="dialog"] {
               position: static !important;
-              overflow: visible !important;
-              transform: none !important;
+              display: block !important;
+              width: 100% !important;
+              max-width: 100% !important;
               height: auto !important;
               max-height: none !important;
+              overflow: visible !important;
+              transform: none !important;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: white !important;
             }
             
             .fixed.inset-0 {
               display: none !important;
+            }
+
+            #printable-invoice {
+              width: 100%;
+              page-break-after: auto;
             }
 
             .print\\:hidden { display: none !important; }

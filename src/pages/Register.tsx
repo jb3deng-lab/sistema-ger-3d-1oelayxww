@@ -4,16 +4,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { Box } from 'lucide-react'
+import { Box, Loader2 } from 'lucide-react'
 
 export default function Register() {
   const [email, setEmail] = useState('')
@@ -44,25 +36,39 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center text-center">
-          <div className="bg-primary/10 p-3 rounded-full mb-4">
-            <Box className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">GER-3D</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Crie sua conta para começar a gerenciar suas impressões
-          </p>
+    <div className="min-h-screen grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-zinc-900" />
+        <div className="absolute inset-0 bg-[url('https://img.usecurling.com/p/800/1200?q=3d%20printer&color=purple&dpr=2')] bg-cover bg-center mix-blend-overlay opacity-30" />
+        <div className="relative z-20 flex items-center text-2xl font-bold tracking-tight">
+          <Box className="mr-2 h-8 w-8 text-primary" />
+          GER-3D
         </div>
+        <div className="relative z-20 mt-auto">
+          <blockquote className="space-y-2">
+            <p className="text-lg font-medium leading-relaxed">
+              "Eleve o nível do seu negócio de impressão 3D. Cadastre-se agora e comece a gerar
+              orçamentos profissionais em segundos."
+            </p>
+          </blockquote>
+        </div>
+      </div>
+      <div className="p-4 lg:p-8 h-full flex items-center bg-background">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[400px]">
+          <div className="flex flex-col space-y-2 text-center lg:text-left">
+            <div className="lg:hidden flex justify-center mb-4">
+              <div className="bg-primary/10 p-3 rounded-full">
+                <Box className="w-8 h-8 text-primary" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Criar uma conta</h1>
+            <p className="text-sm text-muted-foreground">
+              Preencha os dados abaixo para iniciar sua jornada
+            </p>
+          </div>
 
-        <Card className="border-border/50 shadow-lg bg-card text-card-foreground">
-          <CardHeader>
-            <CardTitle>Criar nova conta</CardTitle>
-            <CardDescription>Preencha os dados abaixo para se cadastrar.</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleRegister}>
-            <CardContent className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
@@ -72,7 +78,8 @@ export default function Register() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-background"
+                  className="bg-background h-11"
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -84,23 +91,38 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-background"
+                  className="bg-background h-11"
+                  disabled={isLoading}
                 />
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Criando conta...' : 'Cadastrar'}
-              </Button>
-              <div className="text-center text-sm text-muted-foreground">
-                Já tem uma conta?{' '}
-                <Link to="/login" className="text-primary hover:underline font-medium">
-                  Faça login
-                </Link>
-              </div>
-            </CardFooter>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-11 text-base font-medium"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Criando conta...
+                </>
+              ) : (
+                'Cadastrar'
+              )}
+            </Button>
           </form>
-        </Card>
+
+          <p className="px-8 text-center text-sm text-muted-foreground">
+            Já tem uma conta?{' '}
+            <Link
+              to="/login"
+              className="underline underline-offset-4 hover:text-primary font-medium"
+            >
+              Faça login
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

@@ -10,14 +10,17 @@ interface AuthContextType {
     password: string,
     name?: string,
     address?: string,
+    phone?: string,
   ) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
+  verifyOtp: (email: string, token: string) => Promise<{ error: any }>
   updateProfile: (updates: {
     email?: string
     password?: string
     name?: string
     address?: string
+    phone?: string
   }) => Promise<{ error: any }>
   loading: boolean
 }
@@ -51,23 +54,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, name?: string, address?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    name?: string,
+    address?: string,
+    phone?: string,
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name, address },
-        emailRedirectTo: `${window.location.origin}/`,
+        data: { name, address, phone },
       },
     })
     return { error }
   }
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error }
   }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
+    return { error }
+  }
+
+  const verifyOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    })
     return { error }
   }
 
@@ -76,26 +95,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password?: string
     name?: string
     address?: string
+    phone?: string
   }) => {
     const dataToUpdate: any = {}
     if (updates.email) dataToUpdate.email = updates.email
     if (updates.password) dataToUpdate.password = updates.password
-    if (updates.name || updates.address) {
+    if (updates.name || updates.address || updates.phone) {
       dataToUpdate.data = {
         name: updates.name || user?.user_metadata?.name,
         address: updates.address || user?.user_metadata?.address,
+        phone: updates.phone || user?.user_metadata?.phone,
       }
     }
 
     const { error } = await supabase.auth.updateUser(dataToUpdate)
 
-    if (!error && user && (updates.name || updates.address)) {
+    if (!error && user && (updates.name || updates.address || updates.phone)) {
       await supabase
         .from('profiles')
         .update({
           name: updates.name || user.user_metadata?.name,
           address: updates.address || user.user_metadata?.address,
-        })
+          phone: updates.phone || user.user_metadata?.phone,
+        } as any)
         .eq('id', user.id)
     }
 
@@ -104,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, signUp, signIn, signOut, updateProfile, loading }}
+      value={{ user, session, signUp, signIn, signOut, verifyOtp, updateProfile, loading }}
     >
       {children}
     </AuthContext.Provider>

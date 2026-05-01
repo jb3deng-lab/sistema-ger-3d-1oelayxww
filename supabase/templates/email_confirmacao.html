@@ -11,26 +11,32 @@
   <p>Olá,</p>
   <p>
     Obrigado por se cadastrar em nossa plataforma. Para concluir a criação da sua conta e começar a
-    gerenciar sua fazenda de impressão 3D, por favor, confirme seu endereço de e-mail clicando no
-    botão abaixo:
+    gerenciar sua fazenda de impressão 3D, por favor, utilize o código de confirmação abaixo na
+    página de cadastro:
   </p>
   <div style="text-align: center; margin: 30px 0">
-    <a
-      href="{{ .ConfirmationURL }}"
+    <div
       style="
-        background-color: #4f46e5;
-        color: #ffffff;
-        text-decoration: none;
-        padding: 12px 24px;
-        border-radius: 6px;
+        background-color: #f3f4f6;
+        color: #111827;
+        padding: 16px 24px;
+        border-radius: 8px;
         font-weight: bold;
+        font-size: 28px;
         display: inline-block;
+        letter-spacing: 4px;
+        border: 1px solid #e5e7eb;
       "
-      >Confirmar Meu E-mail</a
     >
+      {{ .Token }}
+    </div>
   </div>
-  <p>Ou copie e cole o link abaixo no seu navegador:</p>
-  <p style="word-break: break-all; color: #666; font-size: 14px">{{ .ConfirmationURL }}</p>
+  <p style="text-align: center; font-size: 14px; color: #666">
+    Se preferir, você também pode confirmar acessando o link abaixo:
+  </p>
+  <p style="word-break: break-all; color: #666; font-size: 12px; text-align: center">
+    {{ .ConfirmationURL }}
+  </p>
   <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0" />
   <p style="font-size: 12px; color: #999; text-align: center">
     Se você não solicitou este cadastro, pode ignorar este e-mail.<br />

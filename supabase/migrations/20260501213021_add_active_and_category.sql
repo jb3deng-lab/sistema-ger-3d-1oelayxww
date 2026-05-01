@@ -1,0 +1,2 @@
+ALTER TABLE public.filaments ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.quotes ADD COLUMN IF NOT EXISTS category TEXT;

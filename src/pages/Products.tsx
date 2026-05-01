@@ -30,7 +30,6 @@ export default function Products() {
 
   const [formData, setFormData] = useState<{
     name: string
-    category: string
     printTimeMins: string
     prepTimeMins: string
     packagingCost: string
@@ -39,7 +38,6 @@ export default function Products() {
     extraComponents: ProductComponent[]
   }>({
     name: '',
-    category: '',
     printTimeMins: '',
     prepTimeMins: '',
     packagingCost: '',
@@ -53,7 +51,6 @@ export default function Products() {
       setEditingId(prod.id)
       setFormData({
         name: prod.name,
-        category: prod.category,
         printTimeMins: prod.printTimeMins.toString(),
         prepTimeMins: prod.prepTimeMins.toString(),
         packagingCost: prod.packagingCost.toString(),
@@ -65,7 +62,6 @@ export default function Products() {
       setEditingId(null)
       setFormData({
         name: '',
-        category: settings.categories[0] || '',
         printTimeMins: '',
         prepTimeMins: '',
         packagingCost: '',
@@ -79,10 +75,9 @@ export default function Products() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const payload: Product = {
+    const payload: any = {
       id: editingId || Date.now().toString(),
       name: formData.name,
-      category: formData.category,
       printTimeMins: Number(formData.printTimeMins) || 0,
       prepTimeMins: Number(formData.prepTimeMins) || 0,
       packagingCost: Number(formData.packagingCost) || 0,
@@ -126,31 +121,13 @@ export default function Products() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 col-span-2 sm:col-span-1">
+              <div className="space-y-2 col-span-2">
                 <Label>Nome do Produto</Label>
                 <Input
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
-              </div>
-              <div className="space-y-2 col-span-2 sm:col-span-1">
-                <Label>Categoria</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(v) => setFormData({ ...formData, category: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {settings.categories.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Tempo Impressão (Mins)</Label>
@@ -222,11 +199,13 @@ export default function Products() {
                       <SelectValue placeholder="Filamento..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {filaments.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>
-                          {f.name} - R${f.costPerKg}/kg
-                        </SelectItem>
-                      ))}
+                      {filaments
+                        .filter((f) => f.isActive !== false)
+                        .map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.name} - R${f.costPerKg}/kg
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <Input
@@ -290,7 +269,7 @@ export default function Products() {
                     step="0.01"
                     placeholder="Custo R$"
                     className="w-28"
-                    value={c.cost || ''}
+                    value={c.cost === 0 ? '' : c.cost}
                     onChange={(e) => {
                       const nc = [...formData.extraComponents]
                       nc[i].cost = Number(e.target.value)
@@ -326,7 +305,6 @@ export default function Products() {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead>Nome</TableHead>
-                <TableHead>Categoria</TableHead>
                 <TableHead>Tempo (Imp/Prep)</TableHead>
                 <TableHead>Materiais / Extras</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -336,7 +314,6 @@ export default function Products() {
               {products.map((prod) => (
                 <TableRow key={prod.id}>
                   <TableCell className="font-medium">{prod.name}</TableCell>
-                  <TableCell>{prod.category}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {prod.printTimeMins}m / {prod.prepTimeMins}m
                   </TableCell>
@@ -365,7 +342,7 @@ export default function Products() {
               ))}
               {products.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                     Nenhum produto cadastrado.
                   </TableCell>
                 </TableRow>

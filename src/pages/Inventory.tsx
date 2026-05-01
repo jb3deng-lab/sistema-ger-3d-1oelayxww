@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '@/store/AppContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Plus, Edit2 } from 'lucide-react'
 
@@ -41,6 +41,7 @@ export default function Inventory() {
     brand: '',
     purchaseDate: new Date().toISOString().split('T')[0],
     costPerKg: '150',
+    isActive: true,
   })
 
   const handleOpenNew = () => {
@@ -54,6 +55,7 @@ export default function Inventory() {
       brand: '',
       purchaseDate: new Date().toISOString().split('T')[0],
       costPerKg: '150',
+      isActive: true,
     })
     setOpen(true)
   }
@@ -70,6 +72,7 @@ export default function Inventory() {
       brand: fil.brand || '',
       purchaseDate: fil.purchaseDate || new Date().toISOString().split('T')[0],
       costPerKg: fil.costPerKg?.toString() || '150',
+      isActive: fil.isActive !== false,
     })
     setOpen(true)
   }
@@ -86,6 +89,7 @@ export default function Inventory() {
         brand: formData.brand,
         purchaseDate: formData.purchaseDate,
         costPerKg: parseFloat(formData.costPerKg),
+        isActive: formData.isActive,
       })
       toast({ title: 'Filamento Atualizado', description: 'As alterações foram salvas.' })
     } else {
@@ -99,6 +103,7 @@ export default function Inventory() {
         brand: formData.brand,
         purchaseDate: formData.purchaseDate,
         costPerKg: parseFloat(formData.costPerKg),
+        isActive: formData.isActive,
       })
       toast({ title: 'Filamento Adicionado', description: 'O estoque foi atualizado.' })
     }
@@ -213,8 +218,15 @@ export default function Inventory() {
                     onChange={(e) => setFormData({ ...formData, costPerKg: e.target.value })}
                   />
                 </div>
+                <div className="space-y-2 flex flex-col justify-center">
+                  <Label className="mb-2">Disponível (Ativo)</Label>
+                  <Switch
+                    checked={formData.isActive}
+                    onCheckedChange={(v) => setFormData({ ...formData, isActive: v })}
+                  />
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-2 border-t mt-2">
                 {editingId && (
                   <Button
                     type="button"
@@ -246,9 +258,14 @@ export default function Inventory() {
           return (
             <Card
               key={fil.id}
-              className="border-none shadow-sm hover:shadow-md transition-all cursor-pointer group relative bg-card"
+              className={`border-none shadow-sm hover:shadow-md transition-all cursor-pointer group relative bg-card ${fil.isActive === false ? 'opacity-60 grayscale' : ''}`}
               onClick={() => handleAdjustWeight(fil.id, fil.currentWeight)}
             >
+              {fil.isActive === false && (
+                <span className="absolute top-2 left-2 bg-background border text-muted-foreground text-[10px] px-2 py-0.5 rounded-full z-10 shadow-sm">
+                  Inativo
+                </span>
+              )}
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                 <Button
                   size="icon"
@@ -283,7 +300,7 @@ export default function Inventory() {
                     className="w-16 h-16 rounded-full border-4 shadow-inner"
                     style={{ backgroundColor: fil.colorHex, borderColor: 'var(--border)' }}
                   />
-                  {isLow && (
+                  {isLow && fil.isActive !== false && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500"></span>

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { UploadCloud, Building, Calculator } from 'lucide-react'
+import { UploadCloud, Building, Calculator, Trash2 } from 'lucide-react'
 
 export default function Settings() {
   const { settings, updateSettings } = useApp()
@@ -17,9 +17,11 @@ export default function Settings() {
     machineCost: '',
     profitMargin: '',
     operatorHourCost: '',
-    categories: '',
-    salesMethods: '',
   })
+
+  const [categories, setCategories] = useState<string[]>([])
+  const [salesMethods, setSalesMethods] = useState<{ name: string; fee: number }[]>([])
+
   const [empresaData, setEmpresaData] = useState({
     companyName: '',
     companyDocument: '',
@@ -36,9 +38,9 @@ export default function Settings() {
         machineCost: settings.machineCost?.toString() ?? '',
         profitMargin: settings.profitMargin?.toString() ?? '',
         operatorHourCost: settings.operatorHourCost?.toString() ?? '',
-        categories: settings.categories?.join(', ') ?? '',
-        salesMethods: settings.salesMethods?.map((m) => `${m.name}:${m.fee}`).join('\n') ?? '',
       })
+      setCategories(settings.categories || [])
+      setSalesMethods(settings.salesMethods || [])
       setEmpresaData({
         companyName: settings.companyName ?? '',
         companyDocument: settings.companyDocument ?? '',
@@ -58,19 +60,13 @@ export default function Settings() {
       machineCost: parseFloat(calcData.machineCost) || 0,
       profitMargin: parseFloat(calcData.profitMargin) || 0,
       operatorHourCost: parseFloat(calcData.operatorHourCost) || 0,
-      categories: calcData.categories
-        .split(',')
-        .map((c) => c.trim())
-        .filter(Boolean),
-      salesMethods: calcData.salesMethods
-        .split('\n')
-        .filter(Boolean)
-        .map((line) => {
-          const [name, fee] = line.split(':')
-          return { name: name.trim(), fee: parseFloat(fee) || 0 }
-        }),
+      categories: categories.filter((c) => c.trim() !== ''),
+      salesMethods: salesMethods.filter((sm) => sm.name.trim() !== ''),
     })
-    toast({ title: 'Variáveis Salvas', description: 'Cálculos padrão atualizados com sucesso.' })
+    toast({
+      title: 'Variáveis Salvas',
+      description: 'Cálculos padrão e listas atualizados com sucesso.',
+    })
   }
 
   const handleSaveEmpresa = (e: React.FormEvent) => {
@@ -83,7 +79,6 @@ export default function Settings() {
   }
 
   const handlePhoneChange = (val: string) => {
-    // Basic formatting (XX) XXXXX-XXXX
     let v = val.replace(/\D/g, '')
     if (v.length > 11) v = v.slice(0, 11)
     if (v.length > 2) {
@@ -224,8 +219,10 @@ export default function Settings() {
         <TabsContent value="calculos" className="space-y-6">
           <Card className="border-none shadow-sm bg-card">
             <CardHeader>
-              <CardTitle>Custos Base Padrão</CardTitle>
-              <CardDescription>Valores default para cálculos de novos orçamentos.</CardDescription>
+              <CardTitle>Custos e Listas Padrão</CardTitle>
+              <CardDescription>
+                Valores e opções default para cálculos de novos orçamentos.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveCalc} className="space-y-6">
@@ -281,28 +278,105 @@ export default function Settings() {
                       Usado para calcular custo de preparação.
                     </p>
                   </div>
-                  <div className="space-y-2 col-span-1 sm:col-span-2">
-                    <Label>Categorias de Produtos (separadas por vírgula)</Label>
-                    <Input
-                      required
-                      value={calcData.categories}
-                      onChange={(e) => setCalcData({ ...calcData, categories: e.target.value })}
-                      placeholder="B2B, B2C, Decoração..."
-                    />
+
+                  <div className="space-y-4 col-span-1 sm:col-span-2 pt-4 border-t">
+                    <Label className="text-base font-semibold">
+                      Categorias de Orçamentos/Produtos
+                    </Label>
+                    <div className="space-y-2">
+                      {categories.map((cat, i) => (
+                        <div key={i} className="flex gap-2">
+                          <Input
+                            value={cat}
+                            onChange={(e) => {
+                              const newCats = [...categories]
+                              newCats[i] = e.target.value
+                              setCategories(newCats)
+                            }}
+                            placeholder="Ex: B2B, B2C, Decoração..."
+                            className="max-w-xs"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setCategories(categories.filter((_, idx) => idx !== i))
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCategories([...categories, ''])}
+                      >
+                        + Adicionar Categoria
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2 col-span-1 sm:col-span-2">
-                    <Label>Métodos de Venda (Nome:Taxa%) - 1 por linha</Label>
-                    <textarea
-                      required
-                      rows={3}
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={calcData.salesMethods}
-                      onChange={(e) => setCalcData({ ...calcData, salesMethods: e.target.value })}
-                      placeholder="Dinheiro/Pix:0&#10;Cartão Crédito:5"
-                    />
+
+                  <div className="space-y-4 col-span-1 sm:col-span-2 pt-4 border-t">
+                    <Label className="text-base font-semibold">Métodos de Venda (Taxas)</Label>
+                    <div className="space-y-2">
+                      {salesMethods.map((sm, i) => (
+                        <div key={i} className="flex gap-2 items-center max-w-md">
+                          <Input
+                            value={sm.name}
+                            onChange={(e) => {
+                              const newSm = [...salesMethods]
+                              newSm[i].name = e.target.value
+                              setSalesMethods(newSm)
+                            }}
+                            placeholder="Nome do Método"
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={sm.fee === 0 ? '' : sm.fee}
+                            onChange={(e) => {
+                              const newSm = [...salesMethods]
+                              newSm[i].fee = parseFloat(e.target.value) || 0
+                              setSalesMethods(newSm)
+                            }}
+                            placeholder="Taxa (%)"
+                            className="w-24"
+                          />
+                          <span className="text-sm font-medium">%</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setSalesMethods(salesMethods.filter((_, idx) => idx !== i))
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSalesMethods([...salesMethods, { name: '', fee: 0 }])}
+                      >
+                        + Adicionar Método
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <Button type="submit">Salvar Variáveis Globais</Button>
+                <div className="pt-4 border-t">
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Salvar Variáveis e Listas
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>

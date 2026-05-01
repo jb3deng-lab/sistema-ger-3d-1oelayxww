@@ -69,7 +69,7 @@ function SidebarNavContent({ navItems, location }: any) {
 }
 
 function SidebarNavFooter({ location, user, setProfileOpen, signOut }: any) {
-  const { setOpenMobile } = useSidebar()
+  const { setOpenMobile, isMobile } = useSidebar()
   return (
     <SidebarFooter className="p-4 border-t space-y-2">
       <SidebarMenu>
@@ -82,6 +82,21 @@ function SidebarNavFooter({ location, user, setProfileOpen, signOut }: any) {
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
+
+      {isMobile && (
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 mb-2"
+          onClick={() => {
+            signOut()
+            setOpenMobile(false)
+          }}
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
+      )}
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="w-full justify-start overflow-hidden">

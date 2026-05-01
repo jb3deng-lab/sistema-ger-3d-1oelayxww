@@ -456,18 +456,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addClient = async (c: Client) => {
     setClients((p) => [c, ...p])
-    await supabase
-      .from('clients')
-      .insert({
-        user_id: user!.id,
-        id: c.id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        document: c.document,
-        address: c.address,
-        client_type: c.clientType,
-      })
+    await supabase.from('clients').insert({
+      user_id: user!.id,
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      document: c.document,
+      address: c.address,
+      client_type: c.clientType,
+    })
   }
   const updateClient = async (id: string, d: Partial<Client>) => {
     setClients((p) => p.map((c) => (c.id === id ? { ...c, ...d } : c)))
@@ -483,18 +481,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addMachine = async (m: Machine) => {
     setMachines((p) => [m, ...p])
-    await supabase
-      .from('machines')
-      .insert({
-        id: m.id,
-        user_id: user!.id,
-        name: m.name,
-        purchase_value: m.purchaseValue,
-        useful_life_hours: m.usefulLifeHours,
-        depreciation_rate: m.depreciationRate,
-        power_watts: m.powerWatts,
-        maintenance_items: m.maintenanceItems as any,
-      })
+    await supabase.from('machines').insert({
+      id: m.id,
+      user_id: user!.id,
+      name: m.name,
+      purchase_value: m.purchaseValue,
+      useful_life_hours: m.usefulLifeHours,
+      depreciation_rate: m.depreciationRate,
+      power_watts: m.powerWatts,
+      maintenance_items: m.maintenanceItems as any,
+    })
   }
   const updateMachine = async (id: string, d: Partial<Machine>) => {
     setMachines((p) => p.map((m) => (m.id === id ? { ...m, ...d } : m)))
@@ -517,20 +513,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addFilament = async (f: Filament) => {
     setFilaments((p) => [f, ...p])
-    await supabase
-      .from('filaments')
-      .insert({
-        id: f.id,
-        user_id: user!.id,
-        name: f.name,
-        type: f.type,
-        color_hex: f.colorHex,
-        initial_weight: f.initialWeight,
-        current_weight: f.currentWeight,
-        brand: f.brand,
-        purchase_date: f.purchaseDate,
-        cost_per_kg: f.costPerKg,
-      })
+    await supabase.from('filaments').insert({
+      id: f.id,
+      user_id: user!.id,
+      name: f.name,
+      type: f.type,
+      color_hex: f.colorHex,
+      initial_weight: f.initialWeight,
+      current_weight: f.currentWeight,
+      brand: f.brand,
+      purchase_date: f.purchaseDate,
+      cost_per_kg: f.costPerKg,
+    })
   }
   const updateFilament = async (id: string, d: Partial<Filament>) => {
     setFilaments((p) => p.map((f) => (f.id === id ? { ...f, ...d } : f)))
@@ -559,20 +553,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addProduct = async (pr: Product) => {
     setProducts((p) => [pr, ...p])
-    await supabase
-      .from('products')
-      .insert({
-        id: pr.id,
-        user_id: user!.id,
-        name: pr.name,
-        category: pr.category,
-        print_time_mins: pr.printTimeMins,
-        prep_time_mins: pr.prepTimeMins,
-        packaging_cost: pr.packagingCost,
-        profit_margin: pr.profitMargin,
-        materials: pr.materials as any,
-        extra_components: pr.extraComponents as any,
-      })
+    await supabase.from('products').insert({
+      id: pr.id,
+      user_id: user!.id,
+      name: pr.name,
+      category: pr.category,
+      print_time_mins: pr.printTimeMins,
+      prep_time_mins: pr.prepTimeMins,
+      packaging_cost: pr.packagingCost,
+      profit_margin: pr.profitMargin,
+      materials: pr.materials as any,
+      extra_components: pr.extraComponents as any,
+    })
   }
   const updateProduct = async (id: string, d: Partial<Product>) => {
     setProducts((p) => p.map((pr) => (pr.id === id ? { ...pr, ...d } : pr)))
@@ -702,15 +694,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addOrder = async (o: Order) => {
     setOrders((p) => [o, ...p])
-    await supabase
-      .from('orders')
-      .insert({
-        id: o.id,
-        user_id: user!.id,
-        quote_id: o.quoteId,
-        status: o.status,
-        start_date: o.startDate,
-      })
+    await supabase.from('orders').insert({
+      id: o.id,
+      user_id: user!.id,
+      quote_id: o.quoteId,
+      status: o.status,
+      start_date: o.startDate,
+    })
   }
   const updateOrderStatus = async (id: string, s: Order['status']) => {
     setOrders((p) => p.map((o) => (o.id === id ? { ...o, status: s } : o)))
@@ -727,17 +717,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addTransaction = async (t: Transaction) => {
     setTransactions((p) => [t, ...p])
-    await supabase
-      .from('transactions')
-      .insert({
-        id: t.id,
-        user_id: user!.id,
-        quote_id: t.quoteId,
-        description: t.description,
-        type: t.type,
-        amount: t.amount,
-        date: t.date,
-      })
+    await supabase.from('transactions').insert({
+      id: t.id,
+      user_id: user!.id,
+      quote_id: t.quoteId,
+      description: t.description,
+      type: t.type,
+      amount: t.amount,
+      date: t.date,
+    })
   }
 
   const updateQuoteStatus = async (id: string, s: Quote['status']) => {

@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Calculator, Plus, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
 
 type QuoteFormProps = { open: boolean; onOpenChange: (o: boolean) => void; editId: string | null }
 
@@ -24,6 +23,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const { toast } = useToast()
 
   const [clientId, setClientId] = useState('')
+  const [category, setCategory] = useState('')
   const [items, setItems] = useState<Partial<QuoteItem>[]>([])
   const [discount, setDiscount] = useState('0')
   const [packagingCost, setPackagingCost] = useState('0')
@@ -31,6 +31,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const [salesMethod, setSalesMethod] = useState(settings.salesMethods[0]?.name || '')
   const [finalPrice, setFinalPrice] = useState('')
   const [status, setStatus] = useState<'Pendente' | 'Aprovado' | 'Recusado'>('Pendente')
+  const [comments, setComments] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -38,6 +39,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         const q = quotes.find((x) => x.id === editId)
         if (q) {
           setClientId(q.clientId)
+          setCategory(q.category || '')
           setItems(q.items)
           setDiscount(q.discount?.toString() || '0')
           setPackagingCost(q.packagingCost?.toString() || '0')
@@ -45,9 +47,11 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
           setSalesMethod(q.salesMethod || settings.salesMethods[0]?.name || '')
           setFinalPrice(q.finalPrice.toString())
           setStatus(q.status)
+          setComments(q.comments || '')
         }
       } else {
         setClientId('')
+        setCategory(settings.categories?.[0] || '')
         setItems([
           {
             pieceName: '',
@@ -65,6 +69,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         setSalesMethod(settings.salesMethods[0]?.name || '')
         setFinalPrice('')
         setStatus('Pendente')
+        setComments('')
       }
     }
   }, [open, editId, quotes, settings])
@@ -159,6 +164,8 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
     const quoteData: any = {
       clientId,
       clientName: client ? client.name : '',
+      category,
+      comments,
       items: calculatedItems,
       totalCosts: {
         material: totals.material,
@@ -226,7 +233,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
+            <div className="space-y-2 col-span-2 sm:col-span-1">
               <Label>Cliente</Label>
               <Select value={clientId} onValueChange={setClientId} required>
                 <SelectTrigger>
@@ -241,10 +248,25 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2 col-span-2 sm:col-span-1">
+              <Label>Categoria (Nicho/Canal)</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {settings.categories?.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-4 border-t pt-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-semibold">Itens do Orçamento</h3>
+              <h3 className="text-sm font-semibold">Peças / Itens do Orçamento</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -264,11 +286,11 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                   ])
                 }
               >
-                <Plus className="w-4 h-4 mr-1" /> Adicionar Produto
+                <Plus className="w-4 h-4 mr-1" /> Adicionar Peça
               </Button>
             </div>
             {items.map((item, index) => (
-              <div key={index} className="p-4 bg-muted/50 rounded-lg space-y-3 relative border">
+              <div key={index} className="p-4 bg-muted/50 rounded-lg space-y-4 relative border">
                 {items.length > 1 && (
                   <Button
                     type="button"
@@ -280,15 +302,15 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 pr-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pr-6">
                   <div className="space-y-2 lg:col-span-2">
-                    <Label>Produto Base</Label>
+                    <Label>Produto Base (Opcional - preenche automático)</Label>
                     <Select
                       value={item.productId || ''}
                       onValueChange={(v) => handleProductSelect(index, v)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione..." />
+                        <SelectValue placeholder="Preencher manualmente ou selecione..." />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((p) => (
@@ -300,15 +322,16 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                     </Select>
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <Label>Nome Custom (opcional)</Label>
+                    <Label>Nome da Peça</Label>
                     <Input
                       required
                       value={item.pieceName || ''}
                       onChange={(e) => updateItem(index, 'pieceName', e.target.value)}
+                      placeholder="Ex: Suporte de Fone"
                     />
                   </div>
-                  <div className="space-y-2 lg:col-span-1">
-                    <Label>Qtd</Label>
+                  <div className="space-y-2">
+                    <Label>Quantidade</Label>
                     <Input
                       type="number"
                       required
@@ -319,7 +342,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       }
                     />
                   </div>
-                  <div className="space-y-2 lg:col-span-1">
+                  <div className="space-y-2">
                     <Label>Máquina</Label>
                     <Select
                       required
@@ -338,9 +361,180 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label>T. Impressão (Horas)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      required
+                      min="0"
+                      value={item.timeHours === 0 && !item.productId ? '' : item.timeHours}
+                      onChange={(e) =>
+                        updateItem(index, 'timeHours', parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>T. Prep. (Horas)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={item.prepTimeHours === 0 && !item.productId ? '' : item.prepTimeHours}
+                      onChange={(e) =>
+                        updateItem(index, 'prepTimeHours', parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-semibold">Materiais (Filamentos)</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const newItems = [...items]
+                        newItems[index].materials = [
+                          ...(newItems[index].materials || []),
+                          { filamentId: '', weight: 0 },
+                        ]
+                        setItems(newItems)
+                      }}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Material
+                    </Button>
+                  </div>
+                  {(item.materials || []).map((m, mIdx) => (
+                    <div key={mIdx} className="flex gap-2 items-center">
+                      <Select
+                        value={m.filamentId}
+                        onValueChange={(v) => {
+                          const newItems = [...items]
+                          newItems[index].materials[mIdx].filamentId = v
+                          setItems(newItems)
+                        }}
+                      >
+                        <SelectTrigger className="flex-1 h-8 text-xs">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filaments
+                            .filter((f) => f.isActive !== false)
+                            .map((f) => (
+                              <SelectItem key={f.id} value={f.id}>
+                                {f.name} - R${f.costPerKg}/kg
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        placeholder="Peso (g)"
+                        className="w-24 h-8 text-xs"
+                        value={m.weight || ''}
+                        onChange={(e) => {
+                          const newItems = [...items]
+                          newItems[index].materials[mIdx].weight = Number(e.target.value)
+                          setItems(newItems)
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => {
+                          const newItems = [...items]
+                          newItems[index].materials = newItems[index].materials.filter(
+                            (_, i) => i !== mIdx,
+                          )
+                          setItems(newItems)
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-3 pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-semibold">Componentes Extras</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const newItems = [...items]
+                        newItems[index].extraComponents = [
+                          ...(newItems[index].extraComponents || []),
+                          { name: '', cost: 0 },
+                        ]
+                        setItems(newItems)
+                      }}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Extra
+                    </Button>
+                  </div>
+                  {(item.extraComponents || []).map((c, cIdx) => (
+                    <div key={cIdx} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Nome (ex: Parafuso)"
+                        className="flex-1 h-8 text-xs"
+                        value={c.name}
+                        onChange={(e) => {
+                          const newItems = [...items]
+                          newItems[index].extraComponents[cIdx].name = e.target.value
+                          setItems(newItems)
+                        }}
+                      />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="Custo R$"
+                        className="w-24 h-8 text-xs"
+                        value={c.cost === 0 ? '' : c.cost}
+                        onChange={(e) => {
+                          const newItems = [...items]
+                          newItems[index].extraComponents[cIdx].cost = Number(e.target.value)
+                          setItems(newItems)
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => {
+                          const newItems = [...items]
+                          newItems[index].extraComponents = newItems[index].extraComponents.filter(
+                            (_, i) => i !== cIdx,
+                          )
+                          setItems(newItems)
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <Label>Comentários / Observações</Label>
+            <Textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Detalhes sobre o orçamento, acabamento, etc..."
+              rows={3}
+            />
           </div>
 
           <div className="bg-muted p-4 rounded-lg space-y-4 text-sm border">

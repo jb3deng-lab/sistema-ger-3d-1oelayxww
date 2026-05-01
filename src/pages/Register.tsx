@@ -32,7 +32,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingCep, setIsLoadingCep] = useState(false)
 
-  const { signUp, verifyOtp, user } = useAuth()
+  const { signUp, verifyOtp, resendOtp, user } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -186,6 +186,10 @@ export default function Register() {
                 <p className="text-sm text-muted-foreground">
                   Enviamos um código de 6 dígitos para{' '}
                   <span className="font-semibold text-foreground">{email}</span>
+                  <br />
+                  <span className="mt-2 block text-xs">
+                    (Se você recebeu um link de confirmação, basta clicar nele para ativar a conta)
+                  </span>
                 </p>
               </>
             )}
@@ -449,11 +453,37 @@ export default function Register() {
                 )}
               </Button>
 
-              <div className="text-center">
+              <div className="flex flex-col space-y-4 items-center pt-4">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsLoading(true)
+                    try {
+                      const { error } = await resendOtp(email)
+                      if (error) throw error
+                      toast({
+                        title: 'Código reenviado',
+                        description: 'Verifique sua caixa de entrada.',
+                      })
+                    } catch (error: any) {
+                      toast({
+                        variant: 'destructive',
+                        title: 'Erro ao reenviar',
+                        description: error.message || 'Tente novamente.',
+                      })
+                    } finally {
+                      setIsLoading(false)
+                    }
+                  }}
+                  className="text-sm font-medium text-primary hover:underline underline-offset-4"
+                  disabled={isLoading}
+                >
+                  Não recebeu o código? Reenviar
+                </button>
                 <button
                   type="button"
                   onClick={() => setStep('form')}
-                  className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
+                  className="text-sm text-muted-foreground hover:text-primary hover:underline underline-offset-4"
                   disabled={isLoading}
                 >
                   Voltar para o cadastro

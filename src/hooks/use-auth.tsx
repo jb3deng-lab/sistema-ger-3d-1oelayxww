@@ -15,6 +15,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   verifyOtp: (email: string, token: string) => Promise<{ error: any }>
+  resendOtp: (email: string) => Promise<{ error: any }>
   updateProfile: (updates: {
     email?: string
     password?: string
@@ -61,11 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     address?: string,
     phone?: string,
   ) => {
+    // Limpa estado anterior para evitar cache de sessão
+    await supabase.auth.signOut()
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { name, address, phone },
+        emailRedirectTo: undefined, // Força envio de código OTP explicitamente
       },
     })
     return { error }
@@ -86,6 +91,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       token,
       type: 'signup',
+    })
+    return { error }
+  }
+
+  const resendOtp = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: undefined,
+      },
     })
     return { error }
   }
@@ -126,7 +142,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, signUp, signIn, signOut, verifyOtp, updateProfile, loading }}
+      value={{
+        user,
+        session,
+        signUp,
+        signIn,
+        signOut,
+        verifyOtp,
+        resendOtp,
+        updateProfile,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

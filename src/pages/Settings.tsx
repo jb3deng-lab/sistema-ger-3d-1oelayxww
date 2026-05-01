@@ -16,6 +16,9 @@ export default function Settings() {
     energyCost: '',
     machineCost: '',
     profitMargin: '',
+    operatorHourCost: '',
+    categories: '',
+    salesMethods: '',
   })
   const [empresaData, setEmpresaData] = useState({
     companyName: '',
@@ -32,6 +35,9 @@ export default function Settings() {
         energyCost: settings.energyCost?.toString() ?? '',
         machineCost: settings.machineCost?.toString() ?? '',
         profitMargin: settings.profitMargin?.toString() ?? '',
+        operatorHourCost: settings.operatorHourCost?.toString() ?? '',
+        categories: settings.categories?.join(', ') ?? '',
+        salesMethods: settings.salesMethods?.map((m) => `${m.name}:${m.fee}`).join('\n') ?? '',
       })
       setEmpresaData({
         companyName: settings.companyName ?? '',
@@ -51,6 +57,18 @@ export default function Settings() {
       energyCost: parseFloat(calcData.energyCost) || 0,
       machineCost: parseFloat(calcData.machineCost) || 0,
       profitMargin: parseFloat(calcData.profitMargin) || 0,
+      operatorHourCost: parseFloat(calcData.operatorHourCost) || 0,
+      categories: calcData.categories
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean),
+      salesMethods: calcData.salesMethods
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => {
+          const [name, fee] = line.split(':')
+          return { name: name.trim(), fee: parseFloat(fee) || 0 }
+        }),
     })
     toast({ title: 'Variáveis Salvas', description: 'Cálculos padrão atualizados com sucesso.' })
   }
@@ -246,6 +264,41 @@ export default function Settings() {
                       required
                       value={calcData.profitMargin}
                       onChange={(e) => setCalcData({ ...calcData, profitMargin: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Valor Hora Operador (R$/hora)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={calcData.operatorHourCost}
+                      onChange={(e) =>
+                        setCalcData({ ...calcData, operatorHourCost: e.target.value })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Usado para calcular custo de preparação.
+                    </p>
+                  </div>
+                  <div className="space-y-2 col-span-1 sm:col-span-2">
+                    <Label>Categorias de Produtos (separadas por vírgula)</Label>
+                    <Input
+                      required
+                      value={calcData.categories}
+                      onChange={(e) => setCalcData({ ...calcData, categories: e.target.value })}
+                      placeholder="B2B, B2C, Decoração..."
+                    />
+                  </div>
+                  <div className="space-y-2 col-span-1 sm:col-span-2">
+                    <Label>Métodos de Venda (Nome:Taxa%) - 1 por linha</Label>
+                    <textarea
+                      required
+                      rows={3}
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={calcData.salesMethods}
+                      onChange={(e) => setCalcData({ ...calcData, salesMethods: e.target.value })}
+                      placeholder="Dinheiro/Pix:0&#10;Cartão Crédito:5"
                     />
                   </div>
                 </div>

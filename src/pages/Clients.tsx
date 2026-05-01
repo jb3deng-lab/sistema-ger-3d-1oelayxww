@@ -26,15 +26,16 @@ export default function Clients() {
     phone: '',
     document: '',
     address: '',
+    clientType: '',
   })
 
   const handleOpen = (client?: Client) => {
     if (client) {
       setEditingId(client.id)
-      setFormData(client)
+      setFormData({ ...client, clientType: client.clientType || '' })
     } else {
       setEditingId(null)
-      setFormData({ name: '', email: '', phone: '', document: '', address: '' })
+      setFormData({ name: '', email: '', phone: '', document: '', address: '', clientType: '' })
     }
     setOpen(true)
   }
@@ -111,14 +112,24 @@ export default function Clients() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Endereço Completo</Label>
-              <Input
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Endereço</Label>
+                <Input
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Cliente</Label>
+                <Input
+                  placeholder="Ex: B2B, Estudante..."
+                  value={formData.clientType}
+                  onChange={(e) => setFormData({ ...formData, clientType: e.target.value })}
+                />
+              </div>
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full mt-4">
               Salvar
             </Button>
           </form>
@@ -140,7 +151,14 @@ export default function Clients() {
             <TableBody>
               {clients.map((client) => (
                 <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {client.name}
+                    {client.clientType && (
+                      <span className="block text-xs text-muted-foreground">
+                        {client.clientType}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {client.email}
                     <br />

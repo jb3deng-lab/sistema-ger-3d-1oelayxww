@@ -13,6 +13,7 @@ import Financial from './pages/Financial'
 import SettingsPage from './pages/Settings'
 import Clients from './pages/Clients'
 import Machines from './pages/Machines'
+import Products from './pages/Products'
 import NotFound from './pages/NotFound'
 import Register from './pages/Register'
 import Login from './pages/Login'
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/financial" element={<Financial />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/machines" element={<Machines />} />
+                <Route path="/products" element={<Products />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
             </Route>

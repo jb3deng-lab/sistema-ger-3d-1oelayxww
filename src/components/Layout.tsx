@@ -37,6 +37,7 @@ import {
   LayoutDashboard,
   Users,
   Box,
+  Cpu,
   Disc3,
   FileText,
   Settings,
@@ -175,7 +176,8 @@ export default function Layout() {
     { title: 'Pedidos', path: '/orders', icon: Package },
     { title: 'Estoque', path: '/inventory', icon: Disc3 },
     { title: 'Clientes', path: '/clients', icon: Users },
-    { title: 'Máquinas', path: '/machines', icon: Box },
+    { title: 'Máquinas', path: '/machines', icon: Cpu },
+    { title: 'Produtos', path: '/products', icon: Box },
     { title: 'Financeiro', path: '/financial', icon: DollarSign },
   ]
 

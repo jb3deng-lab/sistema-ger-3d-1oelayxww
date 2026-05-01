@@ -256,9 +256,21 @@ export function InvoicePreview({
           <div className="flex justify-end pt-4">
             <div className="w-full sm:w-1/2 space-y-2">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Subtotal (Itens + Adicionais):</span>
-                <span>R$ {(quote.finalPrice + (quote.discount || 0)).toFixed(2)}</span>
+                <span>Subtotal (Itens):</span>
+                <span>R$ {quote.suggestedPrice.toFixed(2)}</span>
               </div>
+              {(quote.packagingCost > 0 || quote.shippingCost > 0) && (
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Embalagem/Frete:</span>
+                  <span>R$ {(quote.packagingCost + quote.shippingCost).toFixed(2)}</span>
+                </div>
+              )}
+              {!!quote.salesFeeValue && quote.salesFeeValue > 0 && (
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Taxa Método Venda ({quote.salesMethod}):</span>
+                  <span>+ R$ {quote.salesFeeValue.toFixed(2)}</span>
+                </div>
+              )}
               {!!quote.discount && quote.discount > 0 && (
                 <div className="flex justify-between text-sm text-slate-600 text-red-600">
                   <span>Desconto:</span>

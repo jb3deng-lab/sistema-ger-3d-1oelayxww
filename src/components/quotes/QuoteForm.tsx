@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useApp, Quote, QuoteItem, Product } from '@/store/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -229,6 +229,22 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
     const d = parseFloat(discount) || 0
     setFinalPrice(Math.max(0, feeData.subtotalWithFee - d).toFixed(2))
   }
+
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    if (open) {
+      isFirstRender.current = true
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    recalculateFinalPrice()
+  }, [feeData.subtotalWithFee, discount])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -532,7 +548,84 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
             ))}
           </div>
 
-          <div className="space-y-2 pt-2">
+          <div className="bg-muted p-4 rounded-lg space-y-4 text-sm border">
+            <div className="flex flex-wrap gap-4 text-muted-foreground pb-2 border-b border-border/50 text-xs">
+              <span>Materiais: R$ {totals.material.toFixed(2)}</span>
+              <span>Extras: R$ {totals.extra.toFixed(2)}</span>
+              <span>Máquina: R$ {totals.machine.toFixed(2)}</span>
+              <span>Energia: R$ {totals.energy.toFixed(2)}</span>
+              <span>Operador: R$ {totals.operator.toFixed(2)}</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              <div className="space-y-2">
+                <Label>Embalagem (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={packagingCost}
+                  onChange={(e) => setPackagingCost(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Frete (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={shippingCost}
+                  onChange={(e) => setShippingCost(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Método de Venda (Taxa)</Label>
+                <Select value={salesMethod} onValueChange={setSalesMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {settings.salesMethods.map((m) => (
+                      <SelectItem key={m.name} value={m.name}>
+                        {m.name} ({m.fee}%)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Desconto (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-between items-center text-xs text-muted-foreground">
+              <span>Peças Base: R$ {totals.suggestedPrice.toFixed(2)}</span>
+              <span>Taxa Venda: R$ {feeData.feeValue.toFixed(2)}</span>
+            </div>
+
+            <div className="space-y-2 bg-primary/5 p-2 rounded border border-primary/20 mt-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-primary font-bold">Total Cobrado</Label>
+              </div>
+              <Input
+                type="number"
+                step="0.01"
+                required
+                value={finalPrice}
+                onChange={(e) => setFinalPrice(e.target.value)}
+                className="font-bold bg-white dark:bg-black"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 pb-4">
             <Label>Comentários / Observações</Label>
             <Textarea
               value={comments}
@@ -555,100 +648,6 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
             </div>
           </div>
 
-          <div className="bg-muted p-4 rounded-lg space-y-4 text-sm border">
-            <div className="flex flex-wrap gap-4 text-muted-foreground pb-2 border-b border-border/50 text-xs">
-              <span>Materiais: R$ {totals.material.toFixed(2)}</span>
-              <span>Extras: R$ {totals.extra.toFixed(2)}</span>
-              <span>Máquina: R$ {totals.machine.toFixed(2)}</span>
-              <span>Energia: R$ {totals.energy.toFixed(2)}</span>
-              <span>Operador: R$ {totals.operator.toFixed(2)}</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <Label>Embalagem (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={packagingCost}
-                  onChange={(e) => setPackagingCost(e.target.value)}
-                  onBlur={recalculateFinalPrice}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Frete (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={shippingCost}
-                  onChange={(e) => setShippingCost(e.target.value)}
-                  onBlur={recalculateFinalPrice}
-                />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label>Método de Venda (Taxa)</Label>
-                <Select
-                  value={salesMethod}
-                  onValueChange={(v) => {
-                    setSalesMethod(v)
-                    recalculateFinalPrice()
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {settings.salesMethods.map((m) => (
-                      <SelectItem key={m.name} value={m.name}>
-                        {m.name} ({m.fee}%)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Desconto (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
-                  onBlur={recalculateFinalPrice}
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-between items-center text-xs text-muted-foreground">
-              <span>Peças Base: R$ {totals.suggestedPrice.toFixed(2)}</span>
-              <span>Taxa Venda: R$ {feeData.feeValue.toFixed(2)}</span>
-            </div>
-
-            <div className="space-y-2 bg-primary/5 p-2 rounded border border-primary/20 mt-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-primary font-bold">Total Cobrado</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="w-5 h-5 -mt-1 text-primary"
-                  onClick={recalculateFinalPrice}
-                >
-                  <Calculator className="w-4 h-4" />
-                </Button>
-              </div>
-              <Input
-                type="number"
-                step="0.01"
-                required
-                value={finalPrice}
-                onChange={(e) => setFinalPrice(e.target.value)}
-                className="font-bold bg-white dark:bg-black"
-              />
-            </div>
-          </div>
           <Button type="submit" className="w-full">
             Salvar Orçamento
           </Button>

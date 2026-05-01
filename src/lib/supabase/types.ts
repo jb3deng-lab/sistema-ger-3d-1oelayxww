@@ -1,17 +1,24 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.5'
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
       clients: {
         Row: {
           address: string | null
+          client_type: string | null
           created_at: string
           document: string | null
           email: string | null
@@ -22,6 +29,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          client_type?: string | null
           created_at?: string
           document?: string | null
           email?: string | null
@@ -32,6 +40,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          client_type?: string | null
           created_at?: string
           document?: string | null
           email?: string | null
@@ -147,13 +156,55 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'orders_quote_id_fkey'
-            columns: ['quote_id']
+            foreignKeyName: "orders_quote_id_fkey"
+            columns: ["quote_id"]
             isOneToOne: false
-            referencedRelation: 'quotes'
-            referencedColumns: ['id']
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
           },
         ]
+      }
+      products: {
+        Row: {
+          category: string | null
+          created_at: string
+          extra_components: Json
+          id: string
+          materials: Json
+          name: string
+          packaging_cost: number
+          prep_time_mins: number
+          print_time_mins: number
+          profit_margin: number | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          extra_components?: Json
+          id: string
+          materials?: Json
+          name: string
+          packaging_cost?: number
+          prep_time_mins?: number
+          print_time_mins?: number
+          profit_margin?: number | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          extra_components?: Json
+          id?: string
+          materials?: Json
+          name?: string
+          packaging_cost?: number
+          prep_time_mins?: number
+          print_time_mins?: number
+          profit_margin?: number | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -182,13 +233,20 @@ export type Database = {
       quote_items: {
         Row: {
           costs_energy: number
+          costs_extra: number
           costs_machine: number
           costs_material: number
+          costs_operator: number
           costs_total: number
+          extra_components: Json
           filament_id: string
           id: string
           machine_id: string
+          materials: Json
           piece_name: string
+          prep_time_hours: number
+          product_id: string | null
+          profit_margin: number | null
           quantity: number
           quote_id: string
           suggested_price: number
@@ -197,13 +255,20 @@ export type Database = {
         }
         Insert: {
           costs_energy: number
+          costs_extra?: number
           costs_machine: number
           costs_material: number
+          costs_operator?: number
           costs_total: number
+          extra_components?: Json
           filament_id: string
           id: string
           machine_id: string
+          materials?: Json
           piece_name: string
+          prep_time_hours?: number
+          product_id?: string | null
+          profit_margin?: number | null
           quantity: number
           quote_id: string
           suggested_price: number
@@ -212,13 +277,20 @@ export type Database = {
         }
         Update: {
           costs_energy?: number
+          costs_extra?: number
           costs_machine?: number
           costs_material?: number
+          costs_operator?: number
           costs_total?: number
+          extra_components?: Json
           filament_id?: string
           id?: string
           machine_id?: string
+          materials?: Json
           piece_name?: string
+          prep_time_hours?: number
+          product_id?: string | null
+          profit_margin?: number | null
           quantity?: number
           quote_id?: string
           suggested_price?: number
@@ -227,25 +299,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'quote_items_filament_id_fkey'
-            columns: ['filament_id']
+            foreignKeyName: "quote_items_filament_id_fkey"
+            columns: ["filament_id"]
             isOneToOne: false
-            referencedRelation: 'filaments'
-            referencedColumns: ['id']
+            referencedRelation: "filaments"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'quote_items_machine_id_fkey'
-            columns: ['machine_id']
+            foreignKeyName: "quote_items_machine_id_fkey"
+            columns: ["machine_id"]
             isOneToOne: false
-            referencedRelation: 'machines'
-            referencedColumns: ['id']
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'quote_items_quote_id_fkey'
-            columns: ['quote_id']
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
             isOneToOne: false
-            referencedRelation: 'quotes'
-            referencedColumns: ['id']
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -260,6 +332,9 @@ export type Database = {
           final_price: number
           id: string
           packaging_cost: number
+          sales_fee_percent: number
+          sales_fee_value: number
+          sales_method: string | null
           shipping_cost: number
           show_comments: boolean
           status: string
@@ -280,6 +355,9 @@ export type Database = {
           final_price: number
           id: string
           packaging_cost?: number
+          sales_fee_percent?: number
+          sales_fee_value?: number
+          sales_method?: string | null
           shipping_cost?: number
           show_comments?: boolean
           status: string
@@ -300,6 +378,9 @@ export type Database = {
           final_price?: number
           id?: string
           packaging_cost?: number
+          sales_fee_percent?: number
+          sales_fee_value?: number
+          sales_method?: string | null
           shipping_cost?: number
           show_comments?: boolean
           status?: string
@@ -312,16 +393,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'quotes_client_id_fkey'
-            columns: ['client_id']
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: 'clients'
-            referencedColumns: ['id']
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
           },
         ]
       }
       settings: {
         Row: {
+          categories: Json
           company_address: string
           company_document: string
           company_email: string
@@ -331,10 +413,13 @@ export type Database = {
           energy_cost: number
           filament_cost: number
           machine_cost: number
+          operator_hour_cost: number
           profit_margin: number
+          sales_methods: Json
           user_id: string
         }
         Insert: {
+          categories?: Json
           company_address?: string
           company_document?: string
           company_email?: string
@@ -344,10 +429,13 @@ export type Database = {
           energy_cost?: number
           filament_cost?: number
           machine_cost?: number
+          operator_hour_cost?: number
           profit_margin?: number
+          sales_methods?: Json
           user_id: string
         }
         Update: {
+          categories?: Json
           company_address?: string
           company_document?: string
           company_email?: string
@@ -357,7 +445,9 @@ export type Database = {
           energy_cost?: number
           filament_cost?: number
           machine_cost?: number
+          operator_hour_cost?: number
           profit_margin?: number
+          sales_methods?: Json
           user_id?: string
         }
         Relationships: []
@@ -369,6 +459,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          quote_id: string | null
           type: string
           user_id: string
         }
@@ -378,6 +469,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          quote_id?: string | null
           type: string
           user_id: string
         }
@@ -387,6 +479,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          quote_id?: string | null
           type?: string
           user_id?: string
         }
@@ -408,31 +501,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -441,23 +536,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -466,23 +561,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -491,36 +586,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -528,6 +623,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -548,6 +644,7 @@ export const Constants = {
 //   document: text (nullable)
 //   address: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   client_type: text (nullable)
 // Table: filaments
 //   id: text (not null)
 //   user_id: uuid (not null)
@@ -577,6 +674,18 @@ export const Constants = {
 //   status: text (not null)
 //   start_date: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: products
+//   id: text (not null)
+//   user_id: uuid (not null)
+//   name: text (not null)
+//   category: text (nullable)
+//   print_time_mins: numeric (not null, default: 0)
+//   prep_time_mins: numeric (not null, default: 0)
+//   packaging_cost: numeric (not null, default: 0)
+//   profit_margin: numeric (nullable)
+//   materials: jsonb (not null, default: '[]'::jsonb)
+//   extra_components: jsonb (not null, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: profiles
 //   id: uuid (not null)
 //   name: text (not null, default: ''::text)
@@ -597,6 +706,13 @@ export const Constants = {
 //   costs_energy: numeric (not null)
 //   costs_total: numeric (not null)
 //   suggested_price: numeric (not null)
+//   product_id: text (nullable)
+//   materials: jsonb (not null, default: '[]'::jsonb)
+//   extra_components: jsonb (not null, default: '[]'::jsonb)
+//   prep_time_hours: numeric (not null, default: 0)
+//   costs_operator: numeric (not null, default: 0)
+//   costs_extra: numeric (not null, default: 0)
+//   profit_margin: numeric (nullable)
 // Table: quotes
 //   id: text (not null)
 //   user_id: uuid (not null)
@@ -616,6 +732,9 @@ export const Constants = {
 //   shipping_cost: numeric (not null, default: 0)
 //   comments: text (not null, default: ''::text)
 //   show_comments: boolean (not null, default: false)
+//   sales_method: text (nullable)
+//   sales_fee_percent: numeric (not null, default: 0)
+//   sales_fee_value: numeric (not null, default: 0)
 // Table: settings
 //   user_id: uuid (not null)
 //   filament_cost: numeric (not null, default: 150)
@@ -628,6 +747,9 @@ export const Constants = {
 //   company_phone: text (not null, default: '(11) 99999-9999'::text)
 //   company_address: text (not null, default: 'Rua Principal, 1000 - Centro'::text)
 //   company_logo: text (not null, default: ''::text)
+//   operator_hour_cost: numeric (not null, default: 0)
+//   categories: jsonb (not null, default: '["B2B", "B2C"]'::jsonb)
+//   sales_methods: jsonb (not null, default: '[{"fee": 0, "name": "Dinheiro/Pix"}]'::jsonb)
 // Table: transactions
 //   id: text (not null)
 //   user_id: uuid (not null)
@@ -636,6 +758,7 @@ export const Constants = {
 //   amount: numeric (not null)
 //   date: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+//   quote_id: text (nullable)
 
 // --- CONSTRAINTS ---
 // Table: clients
@@ -651,6 +774,9 @@ export const Constants = {
 //   PRIMARY KEY orders_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY orders_quote_id_fkey: FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
 //   FOREIGN KEY orders_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: products
+//   PRIMARY KEY products_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY products_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
@@ -687,6 +813,10 @@ export const Constants = {
 //   Policy "auth_orders" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (user_id = auth.uid())
 //     WITH CHECK: (user_id = auth.uid())
+// Table: products
+//   Policy "auth_products" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (user_id = auth.uid())
+//     WITH CHECK: (user_id = auth.uid())
 // Table: profiles
 //   Policy "auth_profiles" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (id = auth.uid())
@@ -718,12 +848,13 @@ export const Constants = {
 //   BEGIN
 //     INSERT INTO public.profiles (id, name, address, phone)
 //     VALUES (
-//       NEW.id,
-//       COALESCE(NEW.raw_user_meta_data->>'name', ''),
+//       NEW.id, 
+//       COALESCE(NEW.raw_user_meta_data->>'name', ''), 
 //       COALESCE(NEW.raw_user_meta_data->>'address', ''),
 //       COALESCE(NEW.raw_user_meta_data->>'phone', '')
 //     );
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
+

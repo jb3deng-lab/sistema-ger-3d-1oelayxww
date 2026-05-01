@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password,
       options: {
         data: { name, address, phone },
-        emailRedirectTo: undefined, // Força envio de código OTP explicitamente
+        emailRedirectTo: `${window.location.origin}/`,
       },
     })
     return { error }

@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Calculator, Plus, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 
 type QuoteFormProps = { open: boolean; onOpenChange: (o: boolean) => void; editId: string | null }
 
@@ -32,6 +33,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
   const [finalPrice, setFinalPrice] = useState('')
   const [status, setStatus] = useState<'Pendente' | 'Aprovado' | 'Recusado'>('Pendente')
   const [comments, setComments] = useState('')
+  const [showComments, setShowComments] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -48,6 +50,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
           setFinalPrice(q.finalPrice.toString())
           setStatus(q.status)
           setComments(q.comments || '')
+          setShowComments((q as any).showComments || false)
         }
       } else {
         setClientId('')
@@ -70,6 +73,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
         setFinalPrice('')
         setStatus('Pendente')
         setComments('')
+        setShowComments(false)
       }
     }
   }, [open, editId, quotes, settings])
@@ -166,6 +170,7 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
       clientName: client ? client.name : '',
       category,
       comments,
+      showComments,
       items: calculatedItems,
       totalCosts: {
         material: totals.material,
@@ -535,6 +540,19 @@ export function QuoteForm({ open, onOpenChange, editId }: QuoteFormProps) {
               placeholder="Detalhes sobre o orçamento, acabamento, etc..."
               rows={3}
             />
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="showComments"
+                checked={showComments}
+                onCheckedChange={(checked) => setShowComments(checked === true)}
+              />
+              <label
+                htmlFor="showComments"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Imprimir observações no orçamento/PDF
+              </label>
+            </div>
           </div>
 
           <div className="bg-muted p-4 rounded-lg space-y-4 text-sm border">

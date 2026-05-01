@@ -19,15 +19,15 @@
     <!-- @skip-protected: Do not remove. App entrypoint. -->
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").then(
             (registration) => {
-              console.log('ServiceWorker registration successful');
+              console.log("ServiceWorker registration successful");
             },
             (err) => {
-              console.log('ServiceWorker registration failed: ', err);
-            }
+              console.log("ServiceWorker registration failed: ", err);
+            },
           );
         });
       }

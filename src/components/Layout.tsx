@@ -42,6 +42,7 @@ import {
   FileText,
   Settings,
   LogOut,
+  Power,
   User as UserIcon,
   PlusCircle,
   Package,
@@ -88,12 +89,15 @@ function SidebarNavFooter({ location, user, setProfileOpen, signOut }: any) {
           variant="ghost"
           className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 mb-2"
           onClick={() => {
-            signOut()
-            setOpenMobile(false)
+            if (window.navigator && (window.navigator as any).app) {
+              ;(window.navigator as any).app.exitApp()
+            } else {
+              window.close()
+            }
           }}
         >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sair
+          <Power className="w-4 h-4 mr-2" />
+          Fechar App
         </Button>
       )}
 
